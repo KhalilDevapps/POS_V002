@@ -1,0 +1,850 @@
+{% extends "base.html" %}
+
+{% block title %}Developer Guide - POS System{% endblock %}
+
+{% block content %}
+<section id="developer_guide" class="active">
+    <div class="guide-header">
+        <h2>👨‍💻 Developer Guide</h2>
+        <p class="header-description">Complete technical documentation for POS system development</p>
+    </div>
+
+    <!-- System Architecture -->
+    <div class="guide-section">
+        <h3>🏗️ System Architecture</h3>
+        <div class="guide-content">
+            <h4>Technology Stack</h4>
+            <div class="tech-stack">
+                <div class="tech-category">
+                    <h5>Backend</h5>
+                    <ul>
+                        <li><strong>Framework:</strong> Flask 2.x (Python web framework)</li>
+                        <li><strong>Database:</strong> SQLite 3 (with SQLAlchemy ORM)</li>
+                        <li><strong>Authentication:</strong> Flask-Login</li>
+                        <li><strong>Forms:</strong> Flask-WTF</li>
+                        <li><strong>Security:</strong> Werkzeug (password hashing)</li>
+                    </ul>
+                </div>
+
+                <div class="tech-category">
+                    <h5>Frontend</h5>
+                    <ul>
+                        <li><strong>Templating:</strong> Jinja2</li>
+                        <li><strong>Styling:</strong> Custom CSS with CSS Grid/Flexbox</li>
+                        <li><strong>Icons:</strong> Google Material Icons</li>
+                        <li><strong>JavaScript:</strong> Vanilla JS with modern ES6+</li>
+                        <li><strong>Fonts:</strong> Inter font family</li>
+                    </ul>
+                </div>
+
+                <div class="tech-category">
+                    <h5>Development Tools</h5>
+                    <ul>
+                        <li><strong>Environment:</strong> Python 3.8+</li>
+                        <li><strong>Package Manager:</strong> pip</li>
+                        <li><strong>Version Control:</strong> Git</li>
+                        <li><strong>IDE:</strong> VS Code recommended</li>
+                        <li><strong>Browser:</strong> Chrome/Edge for development</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h4>Application Structure</h4>
+            <div class="file-structure">
+                <pre><code>pos-system/
+├── app.py                 # Main Flask application
+├── instance/
+│   └── pos.db            # SQLite database
+├── templates/            # Jinja2 templates
+│   ├── base.html         # Base template
+│   ├── dashboard.html    # Dashboard page
+│   ├── sales.html        # Sales interface
+│   ├── inventory.html    # Inventory management
+│   ├── users.html        # User management
+│   ├── backup.html       # Backup interface
+│   └── ...
+├── static/               # Static assets
+│   ├── css/
+│   │   └── style.css     # Main stylesheet
+│   └── js/
+│       └── script.js     # Client-side JavaScript
+├── backups/              # Database backups
+├── temp_uploads/         # Temporary file uploads
+├── .env                  # Environment variables
+├── requirements.txt      # Python dependencies
+└── README.md            # Project documentation</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Database Schema -->
+    <div class="guide-section">
+        <h3>🗄️ Database Schema</h3>
+        <div class="guide-content">
+            <h4>Core Tables</h4>
+
+            <div class="schema-table">
+                <h5>users Table</h5>
+                <div class="table-schema">
+                    <pre><code>CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username VARCHAR(80) UNIQUE NOT NULL,
+    password_hash VARCHAR(128) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    secret_question VARCHAR(200),
+    secret_answer VARCHAR(200),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+                </div>
+                <p><strong>Indexes:</strong> username (unique), role</p>
+                <p><strong>Relationships:</strong> One-to-many with sales table</p>
+            </div>
+
+            <div class="schema-table">
+                <h5>items Table</h5>
+                <div class="table-schema">
+                    <pre><code>CREATE TABLE items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(100) NOT NULL,
+    buying_price FLOAT NOT NULL,
+    selling_price FLOAT NOT NULL,
+    quantity INTEGER NOT NULL,
+    barcode VARCHAR(50) UNIQUE NOT NULL,
+    sold_quantity INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+                </div>
+                <p><strong>Indexes:</strong> barcode (unique), name</p>
+                <p><strong>Relationships:</strong> One-to-many with sale_items table</p>
+            </div>
+
+            <div class="schema-table">
+                <h5>sales Table</h5>
+                <div class="table-schema">
+                    <pre><code>CREATE TABLE sales (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    total_amount FLOAT NOT NULL,
+    discount_percent FLOAT DEFAULT 0,
+    discount_amount FLOAT DEFAULT 0,
+    final_amount FLOAT NOT NULL,
+    profit FLOAT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);</code></pre>
+                </div>
+                <p><strong>Indexes:</strong> user_id, created_at</p>
+                <p><strong>Relationships:</strong> Belongs to users, has many sale_items</p>
+            </div>
+
+            <div class="schema-table">
+                <h5>sale_items Table</h5>
+                <div class="table-schema">
+                    <pre><code>CREATE TABLE sale_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sale_id INTEGER NOT NULL,
+    item_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price FLOAT NOT NULL,
+    total_price FLOAT NOT NULL,
+    FOREIGN KEY (sale_id) REFERENCES sales(id),
+    FOREIGN KEY (item_id) REFERENCES items(id)
+);</code></pre>
+                </div>
+                <p><strong>Indexes:</strong> sale_id, item_id</p>
+                <p><strong>Relationships:</strong> Belongs to sales and items</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Documentation -->
+    <div class="guide-section">
+        <h3>🔌 API Reference</h3>
+        <div class="guide-content">
+            <h4>Authentication Endpoints</h4>
+
+            <div class="api-endpoint">
+                <h5>POST /login</h5>
+                <p>User authentication</p>
+                <div class="api-details">
+                    <strong>Request Body:</strong>
+                    <pre><code>{
+    "username": "string",
+    "password": "string"
+}</code></pre>
+                    <strong>Response:</strong>
+                    <pre><code>{
+    "success": true,
+    "redirect": "/dashboard"
+}</code></pre>
+                </div>
+            </div>
+
+            <h4>Inventory Management APIs</h4>
+
+            <div class="api-endpoint">
+                <h5>GET /api/items</h5>
+                <p>Retrieve all inventory items</p>
+                <div class="api-details">
+                    <strong>Response:</strong>
+                    <pre><code>[{
+    "id": 1,
+    "name": "Apple",
+    "buying_price": 50.0,
+    "selling_price": 80.0,
+    "quantity": 100,
+    "barcode": "123456789",
+    "sold_quantity": 25
+}]</code></pre>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>POST /api/complete_sale</h5>
+                <p>Process a new sale transaction</p>
+                <div class="api-details">
+                    <strong>Request Body:</strong>
+                    <pre><code>{
+    "items": [
+        {
+            "barcode": "123456789",
+            "quantity": 2,
+            "name": "Apple"
+        }
+    ],
+    "discount_percent": 5.0
+}</code></pre>
+                    <strong>Response:</strong>
+                    <pre><code>{
+    "success": true,
+    "sale_id": 123,
+    "total": 160.0,
+    "message": "Sale completed successfully!"
+}</code></pre>
+                </div>
+            </div>
+
+            <h4>Backup & Restore APIs</h4>
+
+            <div class="api-endpoint">
+                <h5>POST /create_backup</h5>
+                <p>Create a new database backup</p>
+                <div class="api-details">
+                    <strong>Response:</strong>
+                    <pre><code>{
+    "success": true,
+    "message": "Backup created successfully",
+    "filename": "pos_backup_20241201_143022.db",
+    "size": "2.3 MB"
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>POST /restore_backup</h5>
+                <p>Restore database from backup file</p>
+                <div class="api-details">
+                    <strong>Content-Type:</strong> multipart/form-data
+                    <strong>Form Data:</strong> backup_file (file)
+                    <strong>Response:</strong>
+                    <pre><code>{
+    "success": true,
+    "message": "Database restored successfully",
+    "warning": "Please restart the application"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Installation & Setup -->
+    <div class="guide-section">
+        <h3>🚀 Installation & Setup</h3>
+        <div class="guide-content">
+            <h4>Prerequisites</h4>
+            <ul>
+                <li>Python 3.8 or higher</li>
+                <li>pip package manager</li>
+                <li>Git (for cloning repository)</li>
+                <li>Modern web browser</li>
+            </ul>
+
+            <h4>Installation Steps</h4>
+            <div class="code-example">
+                <pre><code># 1. Clone the repository
+git clone https://github.com/your-org/pos-system.git
+cd pos-system
+
+# 2. Create virtual environment
+python -m venv venv
+
+# 3. Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# 4. Install dependencies
+pip install -r requirements.txt
+
+# 5. Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# 6. Initialize database
+python app.py
+
+# The application will start on http://localhost:5000</code></pre>
+            </div>
+
+            <h4>Environment Configuration</h4>
+            <div class="config-example">
+                <pre><code># .env file configuration
+SECRET_KEY=your-super-secret-key-here
+DATABASE_URL=sqlite:///pos.db
+DEBUG=True
+HOST=0.0.0.0
+PORT=5000
+SESSION_TIMEOUT=3600</code></pre>
+            </div>
+
+            <h4>Production Deployment</h4>
+            <div class="deployment-guide">
+                <h5>Using Gunicorn (Recommended)</h5>
+                <pre><code># Install Gunicorn
+pip install gunicorn
+
+# Run with Gunicorn
+gunicorn --bind 0.0.0.0:8000 --workers 4 app:app
+
+# Or use the provided startup script
+./start_production.sh</code></pre>
+
+                <h5>Nginx Configuration</h5>
+                <pre><code>server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /static {
+        alias /path/to/your/app/static;
+        expires 1y;
+    }
+}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Development Guidelines -->
+    <div class="guide-section">
+        <h3>💻 Development Guidelines</h3>
+        <div class="guide-content">
+            <h4>Code Style & Standards</h4>
+
+            <div class="guideline-section">
+                <h5>Python Code Style</h5>
+                <ul>
+                    <li>Follow PEP 8 style guidelines</li>
+                    <li>Use 4 spaces for indentation</li>
+                    <li>Maximum line length: 88 characters</li>
+                    <li>Use descriptive variable names</li>
+                    <li>Add docstrings to functions and classes</li>
+                </ul>
+            </div>
+
+            <div class="guideline-section">
+                <h5>HTML/CSS Guidelines</h5>
+                <ul>
+                    <li>Use semantic HTML elements</li>
+                    <li>Follow BEM naming convention for CSS</li>
+                    <li>Use CSS custom properties for theming</li>
+                    <li>Ensure responsive design principles</li>
+                    <li>Maintain accessibility standards (WCAG 2.1)</li>
+                </ul>
+            </div>
+
+            <h4>Git Workflow</h4>
+            <div class="git-workflow">
+                <pre><code># Branch naming convention
+feature/add-user-authentication
+bugfix/fix-login-validation
+hotfix/critical-security-patch
+
+# Commit message format
+feat: add user authentication system
+fix: resolve login validation bug
+docs: update API documentation
+style: format code according to PEP 8
+
+# Pull request process
+1. Create feature branch from main
+2. Make changes and commit
+3. Push branch and create PR
+4. Code review and testing
+5. Merge to main branch</code></pre>
+            </div>
+
+            <h4>Testing Guidelines</h4>
+            <ul>
+                <li>Write unit tests for all business logic</li>
+                <li>Use pytest for test framework</li>
+                <li>Achieve minimum 80% code coverage</li>
+                <li>Test both positive and negative scenarios</li>
+                <li>Include integration tests for critical paths</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Security Guidelines -->
+    <div class="guide-section">
+        <h3>🔒 Security Guidelines</h3>
+        <div class="guide-content">
+            <h4>Authentication & Authorization</h4>
+
+            <div class="security-section">
+                <h5>Password Security</h5>
+                <ul>
+                    <li>Use Werkzeug for password hashing (PBKDF2)</li>
+                    <li>Minimum password length: 6 characters</li>
+                    <li>Implement password strength requirements</li>
+                    <li>Force password changes periodically</li>
+                    <li>Store passwords securely (never in plain text)</li>
+                </ul>
+            </div>
+
+            <div class="security-section">
+                <h5>Session Management</h5>
+                <ul>
+                    <li>Use secure session cookies</li>
+                    <li>Implement session timeout</li>
+                    <li>Regenerate session ID on login</li>
+                    <li>Store session data securely</li>
+                    <li>Clear session on logout</li>
+                </ul>
+            </div>
+
+            <h4>Data Protection</h4>
+            <ul>
+                <li>Use parameterized queries to prevent SQL injection</li>
+                <li>Validate and sanitize all user inputs</li>
+                <li>Implement CSRF protection</li>
+                <li>Use HTTPS in production</li>
+                <li>Regular security audits and updates</li>
+            </ul>
+
+            <h4>File Upload Security</h4>
+            <ul>
+                <li>Validate file types and extensions</li>
+                <li>Check file size limits</li>
+                <li>Scan uploaded files for malware</li>
+                <li>Store files outside web root</li>
+                <li>Use secure file permissions</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Performance Optimization -->
+    <div class="guide-section">
+        <h3>⚡ Performance Optimization</h3>
+        <div class="guide-content">
+            <h4>Database Optimization</h4>
+
+            <div class="optimization-tips">
+                <h5>Query Optimization</h5>
+                <ul>
+                    <li>Use database indexes on frequently queried columns</li>
+                    <li>Implement pagination for large result sets</li>
+                    <li>Use select() with specific columns instead of *</li>
+                    <li>Implement database connection pooling</li>
+                    <li>Use database transactions for multiple operations</li>
+                </ul>
+            </div>
+
+            <div class="optimization-tips">
+                <h5>Caching Strategies</h5>
+                <ul>
+                    <li>Cache frequently accessed data</li>
+                    <li>Use Redis for session storage in production</li>
+                    <li>Implement browser caching for static assets</li>
+                    <li>Cache compiled templates</li>
+                    <li>Use CDN for static file delivery</li>
+                </ul>
+            </div>
+
+            <h4>Frontend Optimization</h4>
+            <ul>
+                <li>Minify CSS and JavaScript files</li>
+                <li>Use CSS sprites for icons</li>
+                <li>Implement lazy loading for images</li>
+                <li>Optimize font loading</li>
+                <li>Use CSS Grid and Flexbox for layouts</li>
+            </ul>
+
+            <h4>Monitoring & Profiling</h4>
+            <ul>
+                <li>Use Flask-DebugToolbar for development</li>
+                <li>Monitor database query performance</li>
+                <li>Track application response times</li>
+                <li>Implement error logging and monitoring</li>
+                <li>Set up performance alerts</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="guide-section">
+        <h3>🔧 Developer Troubleshooting</h3>
+        <div class="guide-content">
+            <h4>Common Development Issues</h4>
+
+            <div class="troubleshooting-dev">
+                <h5>❌ Database Connection Errors</h5>
+                <div class="solution">
+                    <strong>Problem:</strong> Unable to connect to database
+                    <br><strong>Solution:</strong>
+                    <ul>
+                        <li>Check database file permissions</li>
+                        <li>Verify DATABASE_URL in .env file</li>
+                        <li>Ensure SQLite file exists</li>
+                        <li>Check file system permissions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="troubleshooting-dev">
+                <h5>❌ Template Not Found Errors</h5>
+                <div class="solution">
+                    <strong>Problem:</strong> Jinja2 template errors
+                    <br><strong>Solution:</strong>
+                    <ul>
+                        <li>Verify template file exists in templates/ directory</li>
+                        <li>Check template file permissions</li>
+                        <li>Ensure correct template name in render_template()</li>
+                        <li>Check for syntax errors in template</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="troubleshooting-dev">
+                <h5>❌ Static File Loading Issues</h5>
+                <div class="solution">
+                    <strong>Problem:</strong> CSS/JS files not loading
+                    <br><strong>Solution:</strong>
+                    <ul>
+                        <li>Verify files exist in static/ directory</li>
+                        <li>Check file permissions</li>
+                        <li>Ensure correct URL paths in templates</li>
+                        <li>Clear browser cache</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="troubleshooting-dev">
+                <h5>❌ Permission Denied Errors</h5>
+                <div class="solution">
+                    <strong>Problem:</strong> Access denied to certain features
+                    <br><strong>Solution:</strong>
+                    <ul>
+                        <li>Check user role assignments</li>
+                        <li>Verify permission decorators</li>
+                        <li>Review ROLE_PERMISSIONS configuration</li>
+                        <li>Test with admin account</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contributing Guidelines -->
+    <div class="guide-section">
+        <h3>🤝 Contributing Guidelines</h3>
+        <div class="guide-content">
+            <h4>How to Contribute</h4>
+
+            <div class="contribution-steps">
+                <h5>1. Fork the Repository</h5>
+                <p>Create your own fork of the project on GitHub</p>
+
+                <h5>2. Create a Feature Branch</h5>
+                <pre><code>git checkout -b feature/your-feature-name</code></pre>
+
+                <h5>3. Make Your Changes</h5>
+                <ul>
+                    <li>Follow the coding standards</li>
+                    <li>Write tests for new features</li>
+                    <li>Update documentation</li>
+                    <li>Ensure all tests pass</li>
+                </ul>
+
+                <h5>4. Commit Your Changes</h5>
+                <pre><code>git commit -m "feat: add new feature description"</code></pre>
+
+                <h5>5. Push and Create Pull Request</h5>
+                <p>Push your branch and create a pull request with detailed description</p>
+            </div>
+
+            <h4>Code Review Process</h4>
+            <ul>
+                <li>All pull requests require code review</li>
+                <li>At least one maintainer must approve</li>
+                <li>All tests must pass</li>
+                <li>Documentation must be updated</li>
+                <li>Follow semantic versioning for releases</li>
+            </ul>
+
+            <h4>Issue Reporting</h4>
+            <p>When reporting bugs, please include:</p>
+            <ul>
+                <li>Clear description of the issue</li>
+                <li>Steps to reproduce</li>
+                <li>Expected vs actual behavior</li>
+                <li>Browser and OS information</li>
+                <li>Screenshots if applicable</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- API Examples -->
+    <div class="guide-section">
+        <h3>📝 Code Examples</h3>
+        <div class="guide-content">
+            <h4>Flask Route Examples</h4>
+
+            <div class="code-example">
+                <h5>Basic Route with Authentication</h5>
+                <pre><code>@app.route('/protected')
+@login_required
+def protected_route():
+    if not has_permission(current_user, 'view_dashboard'):
+        flash('Access denied', 'error')
+        return redirect(url_for('dashboard'))
+
+    return render_template('protected.html')</code></pre>
+            </div>
+
+            <div class="code-example">
+                <h5>API Endpoint with JSON Response</h5>
+                <pre><code>@app.route('/api/items', methods=['GET'])
+@login_required
+def get_items():
+    items = Item.query.all()
+    return jsonify([{
+        'id': item.id,
+        'name': item.name,
+        'quantity': item.quantity,
+        'price': item.selling_price
+    } for item in items])</code></pre>
+            </div>
+
+            <div class="code-example">
+                <h5>Database Query Optimization</h5>
+                <pre><code># Efficient query with joins
+sales = db.session.query(Sale).\
+    join(User).\
+    filter(Sale.created_at >= start_date).\
+    options(joinedload(Sale.user)).\
+    all()
+
+# Paginated query for large datasets
+items = Item.query.\
+    filter(Item.quantity > 0).\
+    order_by(Item.name).\
+    paginate(page=page, per_page=50)</code></pre>
+            </div>
+
+            <h4>Frontend JavaScript Examples</h4>
+
+            <div class="code-example">
+                <h5>AJAX Request with Error Handling</h5>
+                <pre><code>function createBackup() {
+    fetch('/create_backup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadBackupHistory();
+        } else {
+            showAlert(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Network error occurred', 'error');
+    });
+}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deployment Checklist -->
+    <div class="guide-section">
+        <h3>📋 Deployment Checklist</h3>
+        <div class="guide-content">
+            <h4>Pre-Deployment</h4>
+            <div class="checklist">
+                <label class="checklist-item">
+                    <input type="checkbox"> Environment variables configured
+                </label>
+                <label class="checklist-item">
+                    <input type="checkbox"> Database backup created
+                </label>
+                <label class="checklist-item">
+                    <input type="checkbox"> All dependencies installed
+                </label>
+                <label class="checklist-item">
+                    <input type="checkbox"> Static files collected
+                </label>
+                <label class="checklist-item">
+                    <input type="checkbox"> SSL certificate configured
+                </label>
+            </div>
+
+            <h4>Deployment Steps</h4>
+            <ol>
+                <li>Update codebase from repository</li>
+                <li>Install/update Python dependencies</li>
+                <li>Run database migrations if any</li>
+                <li>Collect static files</li>
+                <li>Update web server configuration</li>
+                <li>Restart application server</li>
+                <li>Test all critical functionality</li>
+                <li>Monitor application logs</li>
+            </ol>
+
+            <h4>Post-Deployment</h4>
+            <div class="checklist">
+                <label class="checklist-item">
+                    <input type="checkbox"> Application starts successfully
+                </label>
+                <label class="checklist-item">
+                    <input type="checkbox"> Database connections working
+                </label>
+                <label class="checklist-item">
+                    <input type="checkbox"> User authentication working
+                </label>
+                <label class="checklist-item">
+                    <input type="checkbox"> Static files loading correctly
+                </label>
+                <label class="checklist-item">
+                    <input type="checkbox"> Backup system functional
+                </label>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Add interactive features for developer guide
+document.addEventListener('DOMContentLoaded', function() {
+    // Code block copy functionality
+    const codeBlocks = document.querySelectorAll('pre code');
+    codeBlocks.forEach(block => {
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.textContent = '📋 Copy';
+        copyBtn.onclick = function() {
+            navigator.clipboard.writeText(block.textContent).then(() => {
+                copyBtn.textContent = '✅ Copied!';
+                setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
+            });
+        };
+        block.parentNode.insertBefore(copyBtn, block);
+    });
+
+    // Checklist functionality
+    const checklistItems = document.querySelectorAll('.checklist-item input');
+    checklistItems.forEach(item => {
+        item.addEventListener('change', function() {
+            const label = this.parentNode;
+            if (this.checked) {
+                label.style.textDecoration = 'line-through';
+                label.style.opacity = '0.6';
+            } else {
+                label.style.textDecoration = 'none';
+                label.style.opacity = '1';
+            }
+        });
+    });
+
+    // Smooth scrolling for anchor links
+    const links = document.querySelectorAll('a[href^="#"]');
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+pre:hover .copy-btn {
+    opacity: 1;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.checklist-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    padding-left: 10px;
+}
+
+.checklist-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+pre {
+    position: relative;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+</style>
+{% endblock %}

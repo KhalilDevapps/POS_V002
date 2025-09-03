@@ -1,0 +1,686 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - POS System{% endblock %}
+
+{% block content %}
+<header>
+    <h1>User Management Dashboard</h1>
+    <button id="addUserBtn">+ Add User</button>
+</header>
+
+<main>
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.role.title() }}</td>
+                <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                <td>
+                    {% if user.username != current_user.username %}
+                    <button class="actionBtn edit" onclick="editUser({{ user.id }})">Edit</button>
+                    <button class="actionBtn delete" data-user-id="{{ user.id }}" data-username="{{ user.username|e }}">Delete</button>
+                    {% else %}
+                    <span class="current-user">You</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if not users %}
+    <div class="empty-state">
+        <p>No users found. Click "Add User" to create your first user.</p>
+    </div>
+    {% endif %}
+</main>
+
+<!-- Modal for Add/Edit -->
+<div id="userModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Add New User</h2>
+            <span class="close" onclick="userModal.style.display = 'none'">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form method="POST" action="{{ url_for('users') }}" id="userForm">
+                {{ form.hidden_tag() }}
+                <input type="hidden" id="userId" name="user_id">
+
+                <div class="form-group">
+                    <label for="username">
+                        <i class="material-icons">person</i>
+                        Username
+                    </label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="Enter username" required>
+                    {% if form.username.errors %}
+                        <div class="error-message">
+                            {% for error in form.username.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        <i class="material-icons">lock</i>
+                        Password
+                    </label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter password (min 6 characters)" required>
+                    {% if form.password.errors %}
+                        <div class="error-message">
+                            {% for error in form.password.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="role">
+                        <i class="material-icons">admin_panel_settings</i>
+                        Role
+                    </label>
+                    <select id="role" name="role" class="form-control" required>
+                        <option value="">Select Role</option>
+                        <option value="cashier">Cashier</option>
+                        <option value="admin">Administrator</option>
+                    </select>
+                    {% if form.role.errors %}
+                        <div class="error-message">
+                            {% for error in form.role.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="userModal.style.display = 'none'">Cancel</button>
+            <button type="button" id="submitBtn" class="btn-primary" onclick="submitUserForm()">Create User</button>
+        </div>
+    </div>
+</div>
+
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f8f9fa;
+    color: #333;
+}
+
+header {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8em;
+    font-weight: 600;
+}
+
+header button {
+    background: white;
+    color: #4CAF50;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+header button:hover {
+    background: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+header button i {
+    font-size: 18px;
+}
+
+main {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+th {
+    background: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px 20px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f3f4;
+    color: #495057;
+}
+
+tr:hover {
+    background: #f8f9fa;
+}
+
+button.actionBtn {
+    margin-right: 8px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+button.edit {
+    background: #007bff;
+    color: white;
+}
+
+button.edit:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+}
+
+button.delete {
+    background: #dc3545;
+    color: white;
+}
+
+button.delete:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.current-user {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 14px;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px);
+}
+
+.modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    padding: 24px 30px 20px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.close {
+    font-size: 28px;
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.close:hover {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.form-group label i {
+    color: #6c757d;
+    font-size: 18px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e8ed;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background: white;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.form-control::placeholder {
+    color: #adb5bd;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 13px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.error-message::before {
+    content: '⚠️';
+    font-size: 14px;
+}
+
+.modal-footer {
+    padding: 20px 30px 30px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: #f8f9fa;
+    border-radius: 0 0 16px 16px;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #45a049, #3d8b40);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+}
+
+.btn-primary i {
+    font-size: 16px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    header h1 {
+        font-size: 1.5em;
+    }
+
+    main {
+        padding: 20px 15px;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 20px;
+    }
+
+    table {
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 12px 15px;
+    }
+}
+</style>
+
+{% block extra_scripts %}
+<script>
+const userModal = document.getElementById("userModal");
+const closeModal = document.querySelector(".close");
+const addUserBtn = document.getElementById("addUserBtn");
+const userForm = document.getElementById("userForm");
+const modalTitle = document.getElementById("modalTitle");
+const userId = document.getElementById("userId");
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
+const roleInput = document.getElementById("role");
+
+function openModal(edit = false, user = null) {
+    userModal.style.display = "flex";
+    if (edit) {
+        modalTitle.textContent = "Edit User";
+        userId.value = user.id;
+        usernameInput.value = user.username;
+        passwordInput.value = ""; // Leave password empty for security - user can change if needed
+        passwordInput.placeholder = "Leave empty to keep current password";
+        passwordInput.required = false; // Make password optional when editing
+        roleInput.value = user.role;
+        document.getElementById('submitBtn').textContent = "Update User";
+    } else {
+        modalTitle.textContent = "Add New User";
+        userForm.reset();
+        userId.value = "";
+        passwordInput.required = true; // Make password required when creating
+        passwordInput.placeholder = "Enter password (min 6 characters)";
+        document.getElementById('submitBtn').textContent = "Create User";
+    }
+}
+
+function editUser(id) {
+    // Fetch user data from server
+    fetch(`/api/users/${id}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to fetch user data');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success && data.user) {
+            // Open modal with user data (password field left empty for security)
+            openModal(true, {
+                id: data.user.id,
+                username: data.user.username,
+                role: data.user.role
+            });
+        } else {
+            alert(data.error || 'Failed to load user data');
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching user data:', error);
+        alert('An error occurred while loading user data. Please try again.');
+    });
+}
+
+function deleteUser(id, username) {
+    if (confirm(`Are you sure you want to delete user "${username}"?\n\nThis action cannot be undone.`)) {
+        // Make AJAX call to delete user
+        fetch(`/api/users/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert(data.message || 'User deleted successfully!');
+                // Reload page to refresh user list
+                location.reload();
+            } else {
+                // Show error message
+                alert(data.error || 'Failed to delete user');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting user:', error);
+            alert('An error occurred while deleting the user. Please try again.');
+        });
+    }
+}
+
+addUserBtn.addEventListener("click", () => openModal());
+closeModal.addEventListener("click", () => userModal.style.display = "none");
+
+window.onclick = (e) => {
+    if (e.target === userModal) userModal.style.display = "none";
+};
+
+// Handle form submission
+function submitUserForm() {
+    const userId = document.getElementById('userId').value;
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const role = document.getElementById('role').value;
+
+    // Validate form
+    if (!username || !role) {
+        alert('Please fill in username and role');
+        return;
+    }
+
+    // Password validation: required for new users, optional for editing
+    if (!userId && !password) {
+        alert('Password is required for new users');
+        return;
+    }
+
+    if (password && password.length < 6) {
+        alert('Password must be at least 6 characters long');
+        return;
+    }
+
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Processing...';
+    submitBtn.disabled = true;
+
+    if (userId) {
+        // Update existing user - only include password if it's provided
+        const updateData = {
+            username: username,
+            role: role
+        };
+
+        // Only include password if it's not empty (user wants to change it)
+        if (password && password.trim() !== '') {
+            updateData.password = password;
+        }
+
+        fetch(`/api/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'User updated successfully!');
+                userModal.style.display = "none";
+                location.reload();
+            } else {
+                alert(data.error || 'Failed to update user');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating user:', error);
+            alert('An error occurred while updating the user. Please try again.');
+        })
+        .finally(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+    } else {
+        // Create new user
+        fetch('/api/add_user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password,
+                role: role
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message || 'User created successfully!');
+                userModal.style.display = "none";
+                location.reload();
+            } else {
+                alert(data.error || 'Failed to create user');
+            }
+        })
+        .catch(error => {
+            console.error('Error creating user:', error);
+            alert('An error occurred while creating the user. Please try again.');
+        })
+        .finally(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+    }
+}
+
+// Handle delete button clicks
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('delete')) {
+        const button = event.target;
+        const userId = button.getAttribute('data-user-id');
+        const username = button.getAttribute('data-username');
+        deleteUser(userId, username);
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %}

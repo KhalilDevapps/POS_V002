@@ -1,0 +1,645 @@
+{% extends "base.html" %}
+
+{% block title %}Database Backup - POS System{% endblock %}
+
+{% block content %}
+<section id="backup" class="active">
+    <div class="backup-header">
+        <h2>🛡️ Database Backup</h2>
+        <p class="header-description">Create and download backups of your POS system database</p>
+    </div>
+
+    <!-- Backup Overview -->
+    <div class="backup-overview">
+        <div class="overview-card">
+            <div class="overview-icon">💾</div>
+            <div class="overview-content">
+                <h3>Database Status</h3>
+                <p>SQLite Database - Active</p>
+                <small>Last backup: Never</small>
+            </div>
+        </div>
+        <div class="overview-card">
+            <div class="overview-icon">📊</div>
+            <div class="overview-content">
+                <h3>Data Summary</h3>
+                <p>{{ users_count or 0 }} Users, {{ items_count or 0 }} Items</p>
+                <small>{{ sales_count or 0 }} Sales Records</small>
+            </div>
+        </div>
+        <div class="overview-card">
+            <div class="overview-icon">🛡️</div>
+            <div class="overview-content">
+                <h3>Backup Security</h3>
+                <p>System Admin Access Required</p>
+                <small>Encrypted & Secure</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Actions -->
+    <div class="backup-actions-section">
+        <h3>📤 Backup Actions</h3>
+
+        <div class="backup-actions-grid">
+            <!-- Download Current Database -->
+            <div class="backup-action-card">
+                <div class="action-header">
+                    <div class="action-icon">⬇️</div>
+                    <h4>Download Database</h4>
+                </div>
+                <div class="action-description">
+                    <p>Download the current database file directly to your computer.</p>
+                    <ul>
+                        <li>Complete database backup</li>
+                        <li>Ready for external storage</li>
+                        <li>Includes all data</li>
+                    </ul>
+                </div>
+                <div class="action-buttons">
+                    <a href="{{ url_for('download_backup') }}" class="btn-primary action-btn">
+                        <span class="material-icons">download</span>
+                        Download Now
+                    </a>
+                </div>
+            </div>
+
+            <!-- Create Local Backup -->
+            <div class="backup-action-card">
+                <div class="action-header">
+                    <div class="action-icon">💾</div>
+                    <h4>Create Local Backup</h4>
+                </div>
+                <div class="action-description">
+                    <p>Create a timestamped backup file in the server's backup directory.</p>
+                    <ul>
+                        <li>Automatic timestamp</li>
+                        <li>Stored on server</li>
+                        <li>Multiple versions</li>
+                    </ul>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="createLocalBackup()" class="btn-success action-btn">
+                        <span class="material-icons">backup</span>
+                        Create Backup
+                    </button>
+                </div>
+            </div>
+
+            <!-- Restore Database -->
+            <div class="backup-action-card">
+                <div class="action-header">
+                    <div class="action-icon">🔄</div>
+                    <h4>Restore Database</h4>
+                </div>
+                <div class="action-description">
+                    <p>Restore database from a backup file.</p>
+                    <ul>
+                        <li>Upload backup file</li>
+                        <li>Automatic validation</li>
+                        <li>Safe restoration</li>
+                    </ul>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="showRestoreModal()" class="btn-warning action-btn">
+                        <span class="material-icons">restore</span>
+                        Restore Backup
+                    </button>
+                </div>
+            </div>
+
+            <!-- Backup History -->
+            <div class="backup-action-card">
+                <div class="action-header">
+                    <div class="action-icon">📋</div>
+                    <h4>Backup History</h4>
+                </div>
+                <div class="action-description">
+                    <p>View and manage your backup files.</p>
+                    <ul>
+                        <li>Backup file list</li>
+                        <li>File sizes & dates</li>
+                        <li>Download old backups</li>
+                    </ul>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="showBackupHistory()" class="btn-secondary action-btn">
+                        <span class="material-icons">history</span>
+                        View History
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Information -->
+    <div class="backup-info-section">
+        <h3>ℹ️ Backup Information</h3>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h4>🛡️ Security</h4>
+                <p>Backups contain sensitive data. Store them securely and never share with unauthorized users.</p>
+            </div>
+
+            <div class="info-card">
+                <h4>📅 Schedule</h4>
+                <p>Regular backups are recommended. Consider daily backups for active systems.</p>
+            </div>
+
+            <div class="info-card">
+                <h4>💾 Storage</h4>
+                <p>Store backups in multiple locations including external drives and cloud storage.</p>
+            </div>
+
+            <div class="info-card">
+                <h4>🔄 Restore</h4>
+                <p>To restore, simply replace the current database file with your backup file.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Backups Table -->
+    <div class="recent-backups-section">
+        <h3>📂 Recent Backups</h3>
+        <div id="backupHistoryContainer">
+            <div class="loading-backups">
+                <div class="loading-spinner"></div>
+                <p>Loading backup history...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Backup History Modal -->
+<div id="backupHistoryModal" class="modal">
+    <div class="modal-content large-modal">
+        <div class="modal-header">
+            <h3>Backup History</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="backupHistoryContent">
+                <div class="loading-spinner"></div>
+                <p>Loading backup files...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Restore Backup Modal -->
+<div id="restoreModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🔄 Restore Database</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="restore-warning">
+                <div class="warning-icon">⚠️</div>
+                <div class="warning-content">
+                    <h4>Warning: This action cannot be undone!</h4>
+                    <p>Restoring a backup will replace your current database. Make sure you have a recent backup of your current data.</p>
+                    <ul>
+                        <li>Current data will be backed up automatically</li>
+                        <li>Application may need to be restarted</li>
+                        <li>All users will be logged out</li>
+                    </ul>
+                </div>
+            </div>
+
+            <form id="restoreForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="backupFile" class="form-label">
+                        <span class="material-icons">upload_file</span>
+                        Select Backup File
+                    </label>
+                    <div class="file-input-wrapper">
+                        <input type="file"
+                               id="backupFile"
+                               name="backup_file"
+                               accept=".db"
+                               required
+                               onchange="handleFileSelect(event)">
+                        <div class="file-input-display">
+                            <span class="material-icons">cloud_upload</span>
+                            <span id="fileName">Choose a backup file (.db)</span>
+                        </div>
+                    </div>
+                    <small class="form-help">Only .db files are accepted. File size should not exceed 100MB.</small>
+                </div>
+
+                <div class="restore-info">
+                    <div class="info-item">
+                        <span class="material-icons">info</span>
+                        <span>The restore process will:</span>
+                    </div>
+                    <ul>
+                        <li>Create a temporary backup of current data</li>
+                        <li>Validate the uploaded backup file</li>
+                        <li>Replace the current database</li>
+                        <li>Log out all current users</li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeRestoreModal()">
+                <span class="material-icons">cancel</span>
+                Cancel
+            </button>
+            <button type="button" class="btn-danger" onclick="confirmRestore()" id="restoreBtn">
+                <span class="material-icons">restore</span>
+                <span class="btn-text">Restore Database</span>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let backupHistoryModal = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modal
+    backupHistoryModal = new Modal('backupHistoryModal');
+
+    // Load backup history on page load
+    loadBackupHistory();
+});
+
+function createLocalBackup() {
+    const btn = event.target.closest('.action-btn');
+    const originalText = btn.innerHTML;
+
+    // Show loading state
+    btn.innerHTML = '<div class="loading-spinner small"></div> Creating...';
+    btn.disabled = true;
+
+    fetch('/create_backup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadBackupHistory(); // Refresh the backup list
+        } else {
+            showAlert(data.error || 'Failed to create backup', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Failed to create backup. Please try again.', 'error');
+    })
+    .finally(() => {
+        // Restore button state
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+function showBackupHistory() {
+    backupHistoryModal.show();
+    loadBackupHistoryModal();
+}
+
+function loadBackupHistory() {
+    const container = document.getElementById('backupHistoryContainer');
+
+    // Fetch real backup data from server
+    fetch('/list_backups')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.backups.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-backups">
+                            <div class="material-icons" style="font-size: 48px; color: #6c757d; margin-bottom: 15px;">backup</div>
+                            <h4>No backups found</h4>
+                            <p>Create your first backup to see it here.</p>
+                        </div>
+                    `;
+                } else {
+                    // Show only the 3 most recent backups
+                    const recentBackups = data.backups.slice(0, 3);
+                    container.innerHTML = `
+                        <div class="backup-files-list">
+                            ${recentBackups.map(backup => `
+                                <div class="backup-file-item">
+                                    <div class="file-info">
+                                        <div class="file-name">${backup.filename}</div>
+                                        <div class="file-details">${backup.size_mb} MB • ${new Date(backup.created_at).toLocaleString()}</div>
+                                    </div>
+                                    <div class="file-actions">
+                                        <button onclick="downloadBackupFile('${backup.filename}')" class="btn-small">
+                                            <span class="material-icons">download</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${data.backups.length > 3 ? `
+                            <div class="view-all-backups">
+                                <button onclick="showBackupHistory()" class="btn-secondary">
+                                    <span class="material-icons">history</span>
+                                    View All ${data.backups.length} Backups
+                                </button>
+                            </div>
+                        ` : ''}
+                    `;
+                }
+            } else {
+                container.innerHTML = `
+                    <div class="error-message">
+                        <div class="material-icons">error</div>
+                        <p>Failed to load backup history: ${data.error}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading backup history:', error);
+            container.innerHTML = `
+                <div class="error-message">
+                    <div class="material-icons">error</div>
+                    <p>Failed to load backup history. Please try again.</p>
+                </div>
+            `;
+        });
+}
+
+function loadBackupHistoryModal() {
+    const content = document.getElementById('backupHistoryContent');
+
+    // Fetch real backup data from server
+    fetch('/list_backups')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.backups.length === 0) {
+                    content.innerHTML = `
+                        <div class="no-backups">
+                            <div class="material-icons" style="font-size: 48px; color: #6c757d; margin-bottom: 15px;">backup</div>
+                            <h4>No backups found</h4>
+                            <p>Create your first backup to see it here.</p>
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = `
+                        <div class="backup-files-table">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Filename</th>
+                                        <th>Size</th>
+                                        <th>Created</th>
+                                        <th>Created By</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.backups.map(backup => `
+                                        <tr>
+                                            <td>${backup.filename}</td>
+                                            <td>${backup.size_mb} MB</td>
+                                            <td>${new Date(backup.created_at).toLocaleString()}</td>
+                                            <td>${backup.created_by}</td>
+                                            <td>
+                                                <button onclick="downloadBackupFile('${backup.filename}')" class="btn-small">
+                                                    <span class="material-icons">download</span> Download
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            } else {
+                content.innerHTML = `
+                    <div class="error-message">
+                        <div class="material-icons">error</div>
+                        <p>Failed to load backup history: ${data.error}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading backup history:', error);
+            content.innerHTML = `
+                <div class="error-message">
+                    <div class="material-icons">error</div>
+                    <p>Failed to load backup history. Please try again.</p>
+                </div>
+            `;
+        });
+}
+
+function downloadBackupFile(filename) {
+    // Create a temporary link to download the file
+    const link = document.createElement('a');
+    link.href = `/download_specific_backup/${filename}`;
+    link.download = filename;
+    link.style.display = 'none';
+
+    // Add to DOM, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showAlert(`Downloading ${filename}...`, 'info');
+}
+
+function showRestoreModal() {
+    const modal = document.getElementById('restoreModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeRestoreModal() {
+    const modal = document.getElementById('restoreModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        // Reset form
+        const form = document.getElementById('restoreForm');
+        if (form) form.reset();
+        const fileName = document.getElementById('fileName');
+        if (fileName) fileName.textContent = 'Choose a backup file (.db)';
+    }
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    const fileName = document.getElementById('fileName');
+
+    if (file) {
+        // Validate file type
+        if (!file.name.endsWith('.db')) {
+            showAlert('Please select a valid .db backup file.', 'error');
+            event.target.value = '';
+            if (fileName) fileName.textContent = 'Choose a backup file (.db)';
+            return;
+        }
+
+        // Validate file size (100MB limit)
+        const maxSize = 100 * 1024 * 1024; // 100MB
+        if (file.size > maxSize) {
+            showAlert('File size exceeds 100MB limit.', 'error');
+            event.target.value = '';
+            if (fileName) fileName.textContent = 'Choose a backup file (.db)';
+            return;
+        }
+
+        // Update display
+        if (fileName) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            fileName.textContent = `${file.name} (${sizeMB} MB)`;
+        }
+
+        showAlert(`Selected backup file: ${file.name}`, 'info');
+    } else {
+        if (fileName) fileName.textContent = 'Choose a backup file (.db)';
+    }
+}
+
+function confirmRestore() {
+    const fileInput = document.getElementById('backupFile');
+    const restoreBtn = document.getElementById('restoreBtn');
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        showAlert('Please select a backup file first.', 'error');
+        return;
+    }
+
+    const file = fileInput.files[0];
+
+    // Double confirmation
+    const confirmed = confirm(
+        `⚠️ WARNING: This will replace your current database!\n\n` +
+        `Selected file: ${file.name}\n` +
+        `File size: ${(file.size / (1024 * 1024)).toFixed(2)} MB\n\n` +
+        `Are you absolutely sure you want to proceed?`
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    // Show loading state
+    const originalText = restoreBtn.innerHTML;
+    restoreBtn.innerHTML = '<div class="loading-spinner small"></div> Restoring...';
+    restoreBtn.disabled = true;
+
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('backup_file', file);
+
+    fetch('/restore_backup', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+
+            // Show additional warning about restart
+            if (data.warning) {
+                setTimeout(() => {
+                    showAlert(data.warning, 'info');
+                }, 2000);
+            }
+
+            // Close modal after success
+            setTimeout(() => {
+                closeRestoreModal();
+                // Optionally redirect to login or show restart message
+                showAlert('Please restart the application to complete the restoration.', 'info');
+            }, 3000);
+
+        } else {
+            showAlert(data.error || 'Failed to restore backup', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Failed to restore backup. Please try again.', 'error');
+    })
+    .finally(() => {
+        // Restore button state
+        restoreBtn.innerHTML = originalText;
+        restoreBtn.disabled = false;
+    });
+}
+
+// Modal class for handling modal dialogs
+class Modal {
+    constructor(modalId) {
+        this.modal = document.getElementById(modalId);
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        // Close modal when clicking outside
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) {
+                this.hide();
+            }
+        });
+
+        // Close modal with close button
+        const closeBtn = this.modal.querySelector('.modal-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.hide());
+        }
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.modal.style.display === 'flex') {
+                this.hide();
+            }
+        });
+    }
+
+    show() {
+        this.modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    hide() {
+        this.modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Utility function to show alerts
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type}`;
+    alertDiv.innerHTML = `
+        <span class="material-icons">${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info'}</span>
+        ${message}
+    `;
+
+    // Insert at top of content
+    const content = document.querySelector('.content') || document.body;
+    content.insertBefore(alertDiv, content.firstChild);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

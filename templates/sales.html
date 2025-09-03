@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Sales - POS System{% endblock %}
+
+{% block extra_head %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+{% endblock %}
+
+{% block content %}
+<section id="sales" class="active">
+    <h2>Sales</h2>
+
+<!-- Scanning Options -->
+<div class="scanner-options">
+    <button class="primary" onclick="startScanner()">📷 Scan via Camera</button>
+    <button onclick="manualBarcodeEntry()">⌨️ Enter Barcode Manually</button>
+</div>
+
+<!-- Scanner Container -->
+<div id="scannerContainer" style="display:none;">
+    <div id="reader" style="width:320px; max-width:100%;"></div>
+    <button class="danger" onclick="stopScanner()">❌ Cancel Scan</button>
+</div>
+
+<!-- Manual Entry -->
+<div id="manualEntry" style="display:none;">
+    <input type="text" id="manualBarcode" placeholder="Enter barcode or item name" />
+    <button class="primary" onclick="processManualBarcode()">Add to Cart</button>
+    <button onclick="closeManualEntry()">Close</button>
+</div>
+
+<!-- Cart Section -->
+<div class="cart-section">
+    <h3>Shopping Cart</h3>
+    <div id="cartItems">
+        <div class="empty-cart">Cart is empty. Add items using scanner or manual entry.</div>
+    </div>
+
+    <!-- Cart Summary -->
+    <div class="cart-summary" id="cartSummary" style="display:none;">
+        <div class="summary-row">
+            <span>Subtotal:</span>
+            <span id="subtotal">0 AFA</span>
+        </div>
+        <div class="discount-row">
+            <label>Discount (%): <input type="number" id="discountPercent" min="0" max="100" step="0.1" value="0" onchange="calculateTotal()" /></label>
+            <span id="discountAmount">0 AFA</span>
+        </div>
+        <div class="summary-row total-row">
+            <span><strong>Total:</strong></span>
+            <span id="totalAmount"><strong>0 AFA</strong></span>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="cart-actions">
+        <button class="success" onclick="completeSale()" id="completeBtn" disabled>✅ Complete Sale</button>
+        <button onclick="clearCart()" id="clearBtn" disabled>🗑️ Clear Cart</button>
+        <button onclick="printReceipt()" id="printBtn" disabled>🖨️ Print Receipt</button>
+    </div>
+</div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let cart = [];
+let scanner = null;
+
+// Load cart from localStorage
+function loadCart() {
+    const savedCart = localStorage.getItem('pos_cart');
+    if (savedCart) {
+        cart = JSON.parse(savedCart);
+        renderCart();
+    }
+}
+
+// Save cart to localStorage
+function saveCart() {
+    localStorage.setItem('pos_cart', JSON.stringify(cart));
+}
+
+function startScanner() {
+    document.getElementById('manualEntry').style.display = 'none';
+    document.getElementById('scannerContainer').style.display = 'block';
+
+    if (scanner) {
+        try { scanner.stop(); scanner.clear(); } catch (e) {}
+    }
+
+    scanner = new Html5Qrcode("reader");
+
+    const onScanSuccess = (decodedText) => {
+        addToCart(decodedText);
+        stopScanner();
+    };
+
+    const onScanFailure = () => { /* ignore */ };
+
+    scanner.start(
+        { facingMode: "environment" },
+        {
+            fps: 10,
+            qrbox: 250,
+            formatsToSupport: [
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.EAN_13,
+                Html5QrcodeSupportedFormats.QR_CODE
+            ]
+        },
+        onScanSuccess,
+        onScanFailure
+    );
+}
+
+function stopScanner() {
+    if (scanner) {
+        return scanner.stop()
+            .then(() => {
+                scanner.clear();
+                document.getElementById('scannerContainer').style.display = 'none';
+            })
+            .catch(() => { document.getElementById('scannerContainer').style.display = 'none'; });
+    } else {
+        document.getElementById('scannerContainer').style.display = 'none';
+    }
+}
+
+function manualBarcodeEntry() {
+    stopScanner();
+    document.getElementById('manualEntry').style.display = 'block';
+    document.getElementById('manualBarcode').focus();
+}
+
+function processManualBarcode() {
+    const code = document.getElementById('manualBarcode').value.trim();
+    if (!code) return alert('Enter a barcode');
+    addToCart(code);
+    document.getElementById('manualBarcode').value = '';
+    document.getElementById('manualBarcode').focus();
+}
+
+function closeManualEntry() {
+    document.getElementById('manualEntry').style.display = 'none';
+    document.getElementById('manualBarcode').value = '';
+}
+
+function addToCart(code) {
+    // Find item by barcode
+    fetch('/api/items')
+        .then(response => response.json())
+        .then(items => {
+            const item = items.find(i => i.barcode === code);
+            if (!item) {
+                alert('Item not found');
+                return;
+            }
+
+            const existing = cart.find(c => c.barcode === code);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({
+                    name: item.name,
+                    buy: item.buying_price,
+                    sell: item.selling_price,
+                    barcode: item.barcode,
+                    quantity: 1
+                });
+            }
+
+            saveCart();
+            renderCart();
+        })
+        .catch(error => {
+            console.error('Error fetching items:', error);
+            alert('Error loading items');
+        });
+}
+
+function renderCart() {
+    const cartItemsDiv = document.getElementById('cartItems');
+    const cartSummary = document.getElementById('cartSummary');
+    const completeBtn = document.getElementById('completeBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const printBtn = document.getElementById('printBtn');
+
+    if (cart.length === 0) {
+        cartItemsDiv.innerHTML = '<div class="empty-cart">Cart is empty. Add items using scanner or manual entry.</div>';
+        cartSummary.style.display = 'none';
+        completeBtn.disabled = true;
+        clearBtn.disabled = true;
+        printBtn.disabled = true;
+        return;
+    }
+
+    // Show cart items in table format
+    let html = `
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Subtotal</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    cart.forEach((c, i) => {
+        const subtotal = c.sell * c.quantity;
+        html += `
+            <tr>
+                <td>${c.name}</td>
+                <td>${formatNumber(c.sell)} AFA</td>
+                <td>
+                    <div class="qty-controls">
+                        <button onclick="changeQty(${i}, -1)">-</button>
+                        <span>${c.quantity}</span>
+                        <button onclick="changeQty(${i}, 1)">+</button>
+                    </div>
+                </td>
+                <td>${formatNumber(subtotal)} AFA</td>
+                <td><button class="danger" onclick="removeFromCart(${i})">Remove</button></td>
+            </tr>
+        `;
+    });
+
+    html += '</tbody></table>';
+    cartItemsDiv.innerHTML = html;
+    cartSummary.style.display = 'block';
+    completeBtn.disabled = false;
+    clearBtn.disabled = false;
+    printBtn.disabled = false;
+
+    calculateTotal();
+}
+
+function changeQty(i, d) {
+    cart[i].quantity += d;
+    if (cart[i].quantity <= 0) {
+        cart.splice(i, 1);
+    }
+    saveCart();
+    renderCart();
+}
+
+function removeFromCart(i) {
+    if (confirm(`Remove ${cart[i].name} from cart?`)) {
+        cart.splice(i, 1);
+        saveCart();
+        renderCart();
+    }
+}
+
+function clearCart() {
+    if (confirm('Clear all items from cart?')) {
+        cart = [];
+        saveCart();
+        renderCart();
+    }
+}
+
+function calculateTotal() {
+    let subtotal = 0;
+    cart.forEach(c => {
+        subtotal += c.sell * c.quantity;
+    });
+
+    const discountPercent = parseFloat(document.getElementById('discountPercent').value) || 0;
+    const discountAmount = subtotal * (discountPercent / 100);
+    const total = subtotal - discountAmount;
+
+    document.getElementById('subtotal').textContent = formatNumber(subtotal) + ' AFA';
+    document.getElementById('discountAmount').textContent = formatNumber(discountAmount) + ' AFA';
+    document.getElementById('totalAmount').textContent = formatNumber(total) + ' AFA';
+}
+
+function completeSale() {
+    if (cart.length === 0) return alert('Cart is empty');
+
+    const discountPercent = parseFloat(document.getElementById('discountPercent').value) || 0;
+
+    fetch('/api/complete_sale', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            items: cart,
+            discount_percent: discountPercent
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            cart = [];
+            saveCart();
+            renderCart();
+            // Optionally redirect to receipt or dashboard
+            window.location.href = '/dashboard';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error completing sale:', error);
+        alert('Error completing sale');
+    });
+}
+
+function printReceipt() {
+    // This would typically open a receipt window
+    alert('Receipt printing functionality would be implemented here');
+}
+
+function formatNumber(n) {
+    return Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+// Initialize cart on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadCart();
+
+    // Manual barcode enter on Enter key
+    document.getElementById('manualBarcode').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            processManualBarcode();
+        }
+    });
+});
+</script>
+{% endblock %}

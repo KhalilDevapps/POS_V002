@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator Guide - POS System{% endblock %}
+
+{% block content %}
+<section id="admin_guide" class="active">
+    <div class="guide-header">
+        <h2>⚙️ Administrator Guide</h2>
+        <p class="header-description">Complete guide for managing the POS system</p>
+    </div>
+
+    <!-- System Overview -->
+    <div class="guide-section">
+        <h3>🏢 System Overview</h3>
+        <div class="guide-content">
+            <p>As a system administrator, you have full access to all features of the POS system. Your responsibilities include:</p>
+            <ul>
+                <li>User account management</li>
+                <li>Inventory control and stock management</li>
+                <li>System backup and restore operations</li>
+                <li>Security and access control</li>
+                <li>System monitoring and maintenance</li>
+                <li>Report generation and analysis</li>
+            </ul>
+
+            <div class="admin-alert">
+                <strong>🔐 Security Note:</strong> With great power comes great responsibility. Always follow security best practices and maintain regular backups.
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management -->
+    <div class="guide-section">
+        <h3>👥 User Management</h3>
+        <div class="guide-content">
+            <h4>Creating New Users</h4>
+            <ol>
+                <li>Navigate to <strong>Users</strong> from the sidebar</li>
+                <li>Click <strong>"Add New User"</strong></li>
+                <li>Fill in the user details:
+                    <ul>
+                        <li><strong>Username:</strong> Unique identifier for the user</li>
+                        <li><strong>Password:</strong> Minimum 6 characters</li>
+                        <li><strong>Role:</strong> Admin or Cashier</li>
+                    </ul>
+                </li>
+                <li>Click <strong>"Add User"</strong></li>
+                <li>Provide the login credentials to the new user</li>
+            </ol>
+
+            <h4>User Roles & Permissions</h4>
+            <div class="permissions-table">
+                <div class="role-section">
+                    <h5>🏪 Administrator Role</h5>
+                    <ul>
+                        <li>✅ Manage users (create, edit, delete)</li>
+                        <li>✅ Full inventory management</li>
+                        <li>✅ Process sales transactions</li>
+                        <li>✅ View all reports</li>
+                        <li>✅ System backup and restore</li>
+                        <li>✅ Access dashboard</li>
+                    </ul>
+                </div>
+
+                <div class="role-section">
+                    <h5>💰 Cashier Role</h5>
+                    <ul>
+                        <li>❌ Cannot manage users</li>
+                        <li>❌ Cannot modify inventory</li>
+                        <li>✅ Process sales transactions</li>
+                        <li>✅ View basic reports</li>
+                        <li>❌ Cannot backup/restore system</li>
+                        <li>✅ Access dashboard</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h4>Editing User Accounts</h4>
+            <ol>
+                <li>Go to <strong>Users</strong> page</li>
+                <li>Find the user in the list</li>
+                <li>Click the <strong>Edit</strong> button</li>
+                <li>Modify username, role, or password</li>
+                <li>Click <strong>"Update User"</strong></li>
+            </ol>
+
+            <h4>Deleting Users</h4>
+            <div class="warning-box">
+                <strong>⚠️ Warning:</strong> Deleting a user is permanent and cannot be undone.
+            </div>
+            <ol>
+                <li>Go to <strong>Users</strong> page</li>
+                <li>Find the user to delete</li>
+                <li>Click the <strong>Delete</strong> button</li>
+                <li>Confirm the deletion</li>
+                <li>The user account will be permanently removed</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Inventory Management -->
+    <div class="guide-section">
+        <h3>📦 Inventory Management</h3>
+        <div class="guide-content">
+            <h4>Adding New Items</h4>
+            <ol>
+                <li>Navigate to <strong>Inventory</strong></li>
+                <li>Click <strong>"Add New Item"</strong></li>
+                <li>Enter item details:
+                    <ul>
+                        <li><strong>Name:</strong> Product name</li>
+                        <li><strong>Buying Price:</strong> Cost from supplier</li>
+                        <li><strong>Selling Price:</strong> Retail price</li>
+                        <li><strong>Quantity:</strong> Initial stock level</li>
+                    </ul>
+                </li>
+                <li>The system will auto-generate a unique barcode</li>
+                <li>Click <strong>"Add Item"</strong></li>
+            </ol>
+
+            <h4>Managing Stock Levels</h4>
+            <ul>
+                <li><strong>Restocking:</strong> Update quantity when new stock arrives</li>
+                <li><strong>Price Updates:</strong> Modify buying/selling prices as needed</li>
+                <li><strong>Low Stock Alerts:</strong> Monitor items with quantity ≤ 5</li>
+                <li><strong>Out of Stock:</strong> Items with zero quantity</li>
+            </ul>
+
+            <h4>Bulk Operations</h4>
+            <p>Use the <strong>"Add Sample Items"</strong> feature to quickly populate the inventory with common products for testing purposes.</p>
+        </div>
+    </div>
+
+    <!-- System Backup & Restore -->
+    <div class="guide-section">
+        <h3>🛡️ Backup & Restore</h3>
+        <div class="guide-content">
+            <h4>Creating Backups</h4>
+            <p>Regular backups are crucial for data protection:</p>
+            <ol>
+                <li>Go to <strong>Backup</strong> from the sidebar</li>
+                <li>Choose backup method:
+                    <ul>
+                        <li><strong>Download Database:</strong> Immediate download of current data</li>
+                        <li><strong>Create Local Backup:</strong> Store backup on server</li>
+                    </ul>
+                </li>
+                <li>Click the appropriate backup button</li>
+                <li>Store backups in secure locations</li>
+            </ol>
+
+            <h4>Restoring from Backup</h4>
+            <div class="danger-box">
+                <strong>🚨 Critical Operation:</strong> Restoration will replace current data. Always create a backup before restoring.
+            </div>
+            <ol>
+                <li>Go to <strong>Backup</strong> page</li>
+                <li>Click <strong>"Restore Database"</strong></li>
+                <li>Select your backup file (.db format only)</li>
+                <li>Review the warning and confirm</li>
+                <li>The system will automatically backup current data</li>
+                <li>Wait for restoration to complete</li>
+                <li>Restart the application if prompted</li>
+            </ol>
+
+            <h4>Backup Best Practices</h4>
+            <ul>
+                <li>📅 <strong>Schedule:</strong> Daily backups during off-peak hours</li>
+                <li>💾 <strong>Storage:</strong> Multiple locations (local, external, cloud)</li>
+                <li>🏷️ <strong>Naming:</strong> Use descriptive names with dates</li>
+                <li>✅ <strong>Verification:</strong> Test backups periodically</li>
+                <li>🔒 <strong>Security:</strong> Encrypt sensitive backup files</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Reports & Analytics -->
+    <div class="guide-section">
+        <h3>📊 Reports & Analytics</h3>
+        <div class="guide-content">
+            <h4>Available Reports</h4>
+            <div class="reports-grid">
+                <div class="report-item">
+                    <h5>💰 Sales Reports</h5>
+                    <ul>
+                        <li>Daily, weekly, monthly sales</li>
+                        <li>Revenue and profit analysis</li>
+                        <li>Transaction volume</li>
+                    </ul>
+                </div>
+
+                <div class="report-item">
+                    <h5>📦 Inventory Reports</h5>
+                    <ul>
+                        <li>Stock levels and valuation</li>
+                        <li>Low stock alerts</li>
+                        <li>Product performance</li>
+                    </ul>
+                </div>
+
+                <div class="report-item">
+                    <h5>👥 User Reports</h5>
+                    <ul>
+                        <li>User activity logs</li>
+                        <li>Sales by user</li>
+                        <li>Performance metrics</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h4>Generating Reports</h4>
+            <ol>
+                <li>Navigate to <strong>Reports</strong></li>
+                <li>Select date range</li>
+                <li>Choose report type</li>
+                <li>Review data and export if needed</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- System Maintenance -->
+    <div class="guide-section">
+        <h3>🔧 System Maintenance</h3>
+        <div class="guide-content">
+            <h4>Regular Maintenance Tasks</h4>
+
+            <div class="maintenance-item">
+                <h5>🗂️ Database Cleanup</h5>
+                <p>Regularly clean up old transaction records and optimize database performance.</p>
+                <ul>
+                    <li>Archive old sales data (older than 2 years)</li>
+                    <li>Remove unused user accounts</li>
+                    <li>Optimize database indexes</li>
+                </ul>
+            </div>
+
+            <div class="maintenance-item">
+                <h5>🔍 Performance Monitoring</h5>
+                <p>Monitor system performance and address bottlenecks:</p>
+                <ul>
+                    <li>Check response times</li>
+                    <li>Monitor database size</li>
+                    <li>Review error logs</li>
+                    <li>Update software regularly</li>
+                </ul>
+            </div>
+
+            <div class="maintenance-item">
+                <h5>🛡️ Security Updates</h5>
+                <p>Maintain system security:</p>
+                <ul>
+                    <li>Regular password changes</li>
+                    <li>Review user access permissions</li>
+                    <li>Monitor login attempts</li>
+                    <li>Keep software updated</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="guide-section">
+        <h3>🔧 Advanced Troubleshooting</h3>
+        <div class="guide-content">
+            <h4>Common Administrative Issues</h4>
+
+            <div class="troubleshooting-admin">
+                <h5>❌ Database Connection Issues</h5>
+                <p><strong>Solution:</strong> Check database file permissions, ensure file exists, restart application.</p>
+            </div>
+
+            <div class="troubleshooting-admin">
+                <h5>❌ User Permission Errors</h5>
+                <p><strong>Solution:</strong> Verify user roles in database, check permission assignments, restart session.</p>
+            </div>
+
+            <div class="troubleshooting-admin">
+                <h5>❌ Backup/Restore Failures</h5>
+                <p><strong>Solution:</strong> Check file permissions, ensure sufficient disk space, validate backup file integrity.</p>
+            </div>
+
+            <div class="troubleshooting-admin">
+                <h5>❌ Performance Degradation</h5>
+                <p><strong>Solution:</strong> Clear cache, optimize database, check server resources, review recent changes.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Configuration -->
+    <div class="guide-section">
+        <h3>⚙️ System Configuration</h3>
+        <div class="guide-content">
+            <h4>Environment Variables</h4>
+            <p>Configure system settings in the <code>.env</code> file:</p>
+            <div class="config-example">
+                <pre><code>SECRET_KEY=your-secret-key-here
+DATABASE_URL=sqlite:///pos.db
+DEBUG=False
+HOST=0.0.0.0
+PORT=5000</code></pre>
+            </div>
+
+            <h4>Security Settings</h4>
+            <ul>
+                <li><strong>Password Policy:</strong> Minimum 6 characters, complexity requirements</li>
+                <li><strong>Session Timeout:</strong> Automatic logout after inactivity</li>
+                <li><strong>Access Logging:</strong> Monitor user activities</li>
+                <li><strong>Backup Encryption:</strong> Secure sensitive data</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Emergency Procedures -->
+    <div class="guide-section">
+        <h3>🚨 Emergency Procedures</h3>
+        <div class="guide-content">
+            <h4>Data Loss Recovery</h4>
+            <ol>
+                <li><strong>Stop the system</strong> to prevent further data corruption</li>
+                <li><strong>Locate recent backup</strong> from secure storage</li>
+                <li><strong>Verify backup integrity</strong> before restoration</li>
+                <li><strong>Perform restoration</strong> using backup interface</li>
+                <li><strong>Test system functionality</strong> after restore</li>
+                <li><strong>Document incident</strong> for future reference</li>
+            </ol>
+
+            <h4>System Compromise Response</h4>
+            <ol>
+                <li><strong>Isolate affected systems</strong></li>
+                <li><strong>Change all passwords</strong></li>
+                <li><strong>Review access logs</strong></li>
+                <li><strong>Restore from clean backup</strong></li>
+                <li><strong>Update security measures</strong></li>
+                <li><strong>Report incident</strong> to appropriate authorities</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Support & Resources -->
+    <div class="guide-section">
+        <h3>📞 Support & Resources</h3>
+        <div class="guide-content">
+            <h4>Getting Help</h4>
+            <div class="support-info">
+                <p><strong>Technical Support:</strong> dev@yourcompany.com</p>
+                <p><strong>Emergency Hotline:</strong> +1 (555) 911-1234</p>
+                <p><strong>Documentation:</strong> <a href="/user_guide">End User Guide</a></p>
+                <p><strong>System Logs:</strong> Check application logs for detailed error information</p>
+            </div>
+
+            <h4>Useful Resources</h4>
+            <ul>
+                <li><strong>API Documentation:</strong> Technical API reference</li>
+                <li><strong>Database Schema:</strong> Complete database structure</li>
+                <li><strong>Backup Scripts:</strong> Automated backup solutions</li>
+                <li><strong>Security Guidelines:</strong> Best practices for system security</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="guide-section">
+        <h3>📋 Quick Reference</h3>
+        <div class="guide-content">
+            <h4>Administrator Commands</h4>
+            <div class="commands-grid">
+                <div class="command-item">
+                    <code>python app.py</code>
+                    <span>Start the application</span>
+                </div>
+                <div class="command-item">
+                    <code>python check_db.py</code>
+                    <span>Check database integrity</span>
+                </div>
+                <div class="command-item">
+                    <code>python check_users.py</code>
+                    <span>Verify user accounts</span>
+                </div>
+            </div>
+
+            <h4>Important File Locations</h4>
+            <ul>
+                <li><code>instance/pos.db</code> - Main database file</li>
+                <li><code>backups/</code> - System backup directory</li>
+                <li><code>templates/</code> - HTML templates</li>
+                <li><code>static/</code> - CSS, JS, and assets</li>
+                <li><code>.env</code> - Environment configuration</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Add syntax highlighting for code blocks
+document.addEventListener('DOMContentLoaded', function() {
+    // Simple syntax highlighting for code blocks
+    const codeBlocks = document.querySelectorAll('pre code');
+    codeBlocks.forEach(block => {
+        block.style.background = '#f8f9fa';
+        block.style.padding = '15px';
+        block.style.borderRadius = '8px';
+        block.style.border = '1px solid #e9ecef';
+        block.style.fontFamily = 'Monaco, Consolas, monospace';
+        block.style.fontSize = '14px';
+        block.style.lineHeight = '1.5';
+        block.style.overflow = 'auto';
+    });
+
+    // Add smooth scrolling
+    const links = document.querySelectorAll('a[href^="#"]');
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

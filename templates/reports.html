@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - POS System{% endblock %}
+
+{% block content %}
+<h2>Reports</h2>
+<div style="margin-bottom: 20px;">
+    <label>From: <input type="date" id="reportFromDate" /></label>
+    <label style="margin-left: 10px;">To: <input type="date" id="reportToDate" /></label>
+    <button onclick="filterReports()" class="btn btn-primary">Filter</button>
+    <button onclick="clearReportFilter()" class="btn btn-secondary">Clear</button>
+    <button onclick="generateReport()" class="btn btn-success" style="margin-left: 10px;">📊 Generate Report</button>
+</div>
+
+<div id="reportSummary" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+    <h4>Report Summary</h4>
+    <p id="summaryText">Loading...</p>
+</div>
+
+<table id="reportTable">
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Qty Sold</th>
+            <th>Buying Price</th>
+            <th>Selling Price</th>
+            <th>Profit</th>
+        </tr>
+    </thead>
+    <tbody id="reportTableBody">
+        <tr>
+            <td colspan="5" style="text-align: center; padding: 40px; color: #6c757d;">
+                Loading report data...
+            </td>
+        </tr>
+    </tbody>
+</table>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let allSales = [];
+
+function loadReports() {
+    fetch('/api/sales')
+        .then(response => response.json())
+        .then(data => {
+            allSales = data;
+            renderReports();
+        })
+        .catch(error => {
+            console.error('Error loading sales:', error);
+            document.getElementById('reportTableBody').innerHTML =
+                '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #dc3545;">Error loading report data</td></tr>';
+        });
+}
+
+function renderReports(fromDate = null, toDate = null) {
+    let filteredSales = allSales;
+
+    if (fromDate || toDate) {
+        filteredSales = allSales.filter(sale => {
+            const saleDate = new Date(sale.date);
+            if (fromDate && saleDate < new Date(fromDate)) return false;
+            if (toDate && saleDate > new Date(toDate + 'T23:59:59')) return false;
+            return true;
+        });
+    }
+
+    // Calculate sold quantities from filtered sales
+    const soldItems = {};
+    filteredSales.forEach(sale => {
+        sale.items.forEach(item => {
+            if (!soldItems[item.name]) {
+                soldItems[item.name] = {
+                    qty: 0,
+                    buy: item.buying_price,
+                    sell: item.unit_price
+                };
+            }
+            soldItems[item.name].qty += item.quantity;
+        });
+    });
+
+    // Update summary
+    let totalSales = 0;
+    let totalProfit = 0;
+
+    Object.values(soldItems).forEach(item => {
+        totalSales += item.sell * item.qty;
+        totalProfit += (item.sell - item.buy) * item.qty;
+    });
+
+    document.getElementById('summaryText').textContent =
+        `Total Sales: ${formatNumber(totalSales)} AFA | Total Profit: ${formatNumber(totalProfit)} AFA | Transactions: ${filteredSales.length}`;
+
+    // Render table
+    const tbody = document.getElementById('reportTableBody');
+    tbody.innerHTML = '';
+
+    if (Object.keys(soldItems).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #6c757d;">No sales data found for the selected period</td></tr>';
+        return;
+    }
+
+    Object.entries(soldItems).forEach(([itemName, data]) => {
+        const profit = (data.sell - data.buy) * data.qty;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${itemName}</td>
+            <td>${data.qty}</td>
+            <td>${formatNumber(data.buy)} AFA</td>
+            <td>${formatNumber(data.sell)} AFA</td>
+            <td>${formatNumber(profit)} AFA</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function filterReports() {
+    const fromDate = document.getElementById('reportFromDate').value;
+    const toDate = document.getElementById('reportToDate').value;
+    renderReports(fromDate, toDate);
+}
+
+function clearReportFilter() {
+    document.getElementById('reportFromDate').value = '';
+    document.getElementById('reportToDate').value = '';
+    renderReports();
+}
+
+function generateReport() {
+    // This would open a report window
+    alert('Report generation functionality would be implemented here');
+}
+
+function formatNumber(n) {
+    return Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadReports();
+});
+</script>
+{% endblock %}

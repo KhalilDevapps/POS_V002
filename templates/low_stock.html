@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Low Stock Alert - POS System{% endblock %}
+
+{% block content %}
+<section id="low_stock" class="active">
+    <div class="low-stock-header">
+        <h2>📉 Low Stock Alert</h2>
+        <p class="header-description">Items that need immediate attention for restocking</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="stock-summary">
+        <div class="summary-card low-stock-count">
+            <div class="summary-icon">⚠️</div>
+            <div class="summary-content">
+                <h3>{{ low_stock_items|length }}</h3>
+                <p>Low Stock Items</p>
+                <small>Quantity ≤ 5</small>
+            </div>
+        </div>
+        <div class="summary-card out-of-stock-count">
+            <div class="summary-icon">🚨</div>
+            <div class="summary-content">
+                <h3>{{ out_of_stock_items|length }}</h3>
+                <p>Out of Stock</p>
+                <small>Quantity = 0</small>
+            </div>
+        </div>
+        <div class="summary-card total-alerts">
+            <div class="summary-icon">📊</div>
+            <div class="summary-content">
+                <h3>{{ low_stock_items|length + out_of_stock_items|length }}</h3>
+                <p>Total Alerts</p>
+                <small>Items needing attention</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Items Section -->
+    {% if low_stock_items %}
+    <div class="stock-section">
+        <h3>⚠️ Running Low (1-5 items)</h3>
+        <div class="stock-items-grid">
+            {% for item in low_stock_items %}
+            <div class="stock-item-card warning">
+                <div class="item-header">
+                    <h4>{{ item.name }}</h4>
+                    <span class="stock-badge low">{{ item.quantity }} left</span>
+                </div>
+                <div class="item-details">
+                    <div class="detail-row">
+                        <span class="label">Selling Price:</span>
+                        <span class="value">{{ "{:,.0f}".format(item.selling_price) }} AFA</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Buying Price:</span>
+                        <span class="value">{{ "{:,.0f}".format(item.buying_price) }} AFA</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Profit Margin:</span>
+                        <span class="value">{{ "%.1f"|format((item.selling_price - item.buying_price) / item.buying_price * 100) }}%</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Barcode:</span>
+                        <span class="value barcode">{{ item.barcode }}</span>
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <button onclick="printBarcode('{{ item.id }}')" class="btn-print">
+                        <span class="material-icons">print</span>
+                        Print Barcode
+                    </button>
+                    <a href="{{ url_for('inventory') }}" class="btn-restock">
+                        <span class="material-icons">add_shopping_cart</span>
+                        Restock
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Out of Stock Items Section -->
+    {% if out_of_stock_items %}
+    <div class="stock-section">
+        <h3>🚨 Out of Stock (0 items)</h3>
+        <div class="stock-items-grid">
+            {% for item in out_of_stock_items %}
+            <div class="stock-item-card critical">
+                <div class="item-header">
+                    <h4>{{ item.name }}</h4>
+                    <span class="stock-badge out">Out of Stock</span>
+                </div>
+                <div class="item-details">
+                    <div class="detail-row">
+                        <span class="label">Selling Price:</span>
+                        <span class="value">{{ "{:,.0f}".format(item.selling_price) }} AFA</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Buying Price:</span>
+                        <span class="value">{{ "{:,.0f}".format(item.buying_price) }} AFA</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Last Sold:</span>
+                        <span class="value">{{ item.sold_quantity }} units</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Barcode:</span>
+                        <span class="value barcode">{{ item.barcode }}</span>
+                    </div>
+                </div>
+                <div class="item-actions">
+                    <button onclick="printBarcode('{{ item.id }}')" class="btn-print">
+                        <span class="material-icons">print</span>
+                        Print Barcode
+                    </button>
+                    <a href="{{ url_for('inventory') }}" class="btn-restock critical">
+                        <span class="material-icons">add_shopping_cart</span>
+                        Urgent Restock
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- No Alerts Message -->
+    {% if not low_stock_items and not out_of_stock_items %}
+    <div class="no-alerts">
+        <div class="no-alerts-icon">✅</div>
+        <h3>All Items Well Stocked!</h3>
+        <p>Great job! All your inventory items are sufficiently stocked.</p>
+        <a href="{{ url_for('inventory') }}" class="btn-primary">View Full Inventory</a>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{{ url_for('inventory') }}" class="btn-secondary">
+            <span class="material-icons">inventory</span>
+            Manage Inventory
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn-secondary">
+            <span class="material-icons">dashboard</span>
+            Back to Dashboard
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function printBarcode(itemId) {
+    window.open('/print_barcode/' + itemId, '_blank', 'width=800,height=600');
+}
+
+// Auto-refresh functionality (optional)
+document.addEventListener('DOMContentLoaded', function() {
+    // Add refresh button functionality
+    const refreshBtn = document.querySelector('.refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            location.reload();
+        });
+    }
+});
+</script>
+{% endblock %}

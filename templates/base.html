@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}POS System - AFA{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <div class="layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <h2>POS</h2>
+            {% if current_user.has_permission('view_dashboard') %}
+            <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+            {% endif %}
+            {% if current_user.has_permission('process_sales') %}
+            <a href="{{ url_for('sales') }}" class="nav-link {% if request.endpoint == 'sales' %}active{% endif %}">💰 Sales</a>
+            {% endif %}
+            {% if current_user.has_permission('view_inventory') %}
+            <a href="{{ url_for('inventory') }}" class="nav-link {% if request.endpoint == 'inventory' %}active{% endif %}">📦 Inventory</a>
+            {% endif %}
+            {% if current_user.has_permission('view_sales') %}
+            <a href="{{ url_for('reports') }}" class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}">📑 Reports</a>
+            {% endif %}
+            {% if current_user.has_permission('manage_users') %}
+            <a href="{{ url_for('users') }}" class="nav-link {% if request.endpoint == 'users' %}active{% endif %}">
+                <span class="material-icons">people</span>
+                <span class="nav-text">Users</span>
+            </a>
+            {% endif %}
+            {% if current_user.has_permission('system_admin') %}
+            <a href="{{ url_for('permissions') }}" class="nav-link {% if request.endpoint == 'permissions' %}active{% endif %}">
+                <span class="material-icons">admin_panel_settings</span>
+                <span class="nav-text">Permissions</span>
+            </a>
+            <a href="{{ url_for('backup') }}" class="nav-link {% if request.endpoint == 'backup' %}active{% endif %}">
+                <span class="material-icons">backup</span>
+                <span class="nav-text">Backup</span>
+            </a>
+            {% endif %}
+            <!-- Help & Documentation -->
+            <a href="{{ url_for('user_guide') }}" class="nav-link {% if request.endpoint == 'user_guide' %}active{% endif %}">
+                <span class="material-icons">help</span>
+                <span class="nav-text">User Guide</span>
+            </a>
+
+            {% if current_user.has_permission('system_admin') %}
+            <a href="{{ url_for('admin_guide') }}" class="nav-link {% if request.endpoint == 'admin_guide' %}active{% endif %}">
+                <span class="material-icons">admin_panel_settings</span>
+                <span class="nav-text">Admin Guide</span>
+            </a>
+            <a href="{{ url_for('developer_guide') }}" class="nav-link {% if request.endpoint == 'developer_guide' %}active{% endif %}">
+                <span class="material-icons">code</span>
+                <span class="nav-text">Developer Guide</span>
+            </a>
+            {% endif %}
+
+            <!-- User Profile Dropdown -->
+            <div class="user-profile-section">
+                <div class="user-profile-trigger" onclick="toggleUserMenu()">
+                    <div class="user-avatar-sidebar">
+                        <span class="avatar-text-sidebar">{{ current_user.username[0].upper() if current_user.is_authenticated else 'U' }}</span>
+                    </div>
+                    <div class="user-details-sidebar">
+                        <div class="user-name-sidebar">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                        <div class="user-role-sidebar">{{ current_user.role.title() if current_user.is_authenticated else 'Guest' }}</div>
+                    </div>
+                    <span class="dropdown-arrow">▼</span>
+                </div>
+
+                <!-- User Menu Dropdown -->
+                <div id="userMenu" class="user-menu-dropdown">
+                    <div class="user-menu-header">
+                        <div class="user-menu-avatar">
+                            <span class="avatar-text-large">{{ current_user.username[0].upper() if current_user.is_authenticated else 'U' }}</span>
+                        </div>
+                        <div class="user-menu-info">
+                            <div class="user-menu-name">{{ current_user.username if current_user.is_authenticated else 'User' }}</div>
+                            <div class="user-menu-role">{{ current_user.role.title() if current_user.is_authenticated else 'Guest' }}</div>
+                            <div class="user-menu-email">Member since {{ current_user.created_at.strftime('%B %Y') if current_user.is_authenticated else 'N/A' }}</div>
+                        </div>
+                    </div>
+
+                    <div class="user-menu-divider"></div>
+
+                    <div class="user-menu-section">
+                        <h4>Account Settings</h4>
+                        <button class="user-menu-item" onclick="openChangePasswordModal()">
+                            <span class="material-icons">lock</span>
+                            Change Password
+                        </button>
+                        <button class="user-menu-item" onclick="openSecretQuestionModal()">
+                            <span class="material-icons">security</span>
+                            Security Question
+                        </button>
+                        <button class="user-menu-item" onclick="openProfileModal()">
+                            <span class="material-icons">person</span>
+                            View Profile
+                        </button>
+                    </div>
+
+                    <div class="user-menu-divider"></div>
+
+                    <button class="user-menu-item logout-item" onclick="window.location.href='{{ url_for('logout')|e }}'">
+                        <span class="material-icons">logout</span>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="content">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">
+                                <span class="material-icons">
+                                    {% if category == 'success' %}check_circle{% elif category == 'error' %}error{% else %}info{% endif %}
+                                </span>
+                                <span>{{ message }}</span>
+                                <button class="flash-close" onclick="this.parentElement.remove()">
+                                    <span class="material-icons">close</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% else %}
+        {% block login_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal-overlay" role="dialog" aria-labelledby="changePasswordTitle" aria-modal="true">
+        <div class="modal-container">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div class="modal-icon">
+                        <span class="material-icons" aria-hidden="true">lock</span>
+                    </div>
+                    <h2 id="changePasswordTitle" class="modal-title">Change Password</h2>
+                    <button class="modal-close" onclick="closeChangePasswordModal()" aria-label="Close change password modal">
+                        <span class="material-icons" aria-hidden="true">close</span>
+                    </button>
+                </div>
+
+                <form method="POST" action="{{ url_for('change_password') }}" class="modal-form" novalidate>
+                    <div class="modal-body">
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="current_password" class="form-label">
+                                    <span class="material-icons" aria-hidden="true">security</span>
+                                    Current Password
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="password"
+                                           id="current_password"
+                                           name="current_password"
+                                           class="form-input"
+                                           placeholder="Enter your current password"
+                                           required
+                                           aria-describedby="current-password-help">
+                                    <button type="button" class="input-toggle" onclick="togglePassword('current_password')" aria-label="Toggle password visibility">
+                                        <span class="material-icons" aria-hidden="true">visibility</span>
+                                    </button>
+                                </div>
+                                <small id="current-password-help" class="form-help">Enter your current password to proceed</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="new_password" class="form-label">
+                                    <span class="material-icons" aria-hidden="true">vpn_key</span>
+                                    New Password
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="password"
+                                           id="new_password"
+                                           name="new_password"
+                                           class="form-input"
+                                           placeholder="Enter a new password"
+                                           required
+                                           minlength="6"
+                                           aria-describedby="new-password-help">
+                                    <button type="button" class="input-toggle" onclick="togglePassword('new_password')" aria-label="Toggle password visibility">
+                                        <span class="material-icons" aria-hidden="true">visibility</span>
+                                    </button>
+                                </div>
+                                <small id="new-password-help" class="form-help">Must be at least 6 characters long</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="confirm_password" class="form-label">
+                                    <span class="material-icons" aria-hidden="true">check_circle</span>
+                                    Confirm New Password
+                                </label>
+                                <div class="input-wrapper">
+                                    <input type="password"
+                                           id="confirm_password"
+                                           name="confirm_password"
+                                           class="form-input"
+                                           placeholder="Confirm your new password"
+                                           required
+                                           aria-describedby="confirm-password-help">
+                                    <button type="button" class="input-toggle" onclick="togglePassword('confirm_password')" aria-label="Toggle password visibility">
+                                        <span class="material-icons" aria-hidden="true">visibility</span>
+                                    </button>
+                                </div>
+                                <small id="confirm-password-help" class="form-help">Re-enter your new password</small>
+                            </div>
+                        </div>
+
+                        <div class="password-strength" id="passwordStrength" aria-live="polite">
+                            <div class="strength-meter">
+                                <div class="strength-bar" id="strengthBar"></div>
+                            </div>
+                            <small class="strength-text" id="strengthText">Password strength: Weak</small>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeChangePasswordModal()">
+                            <span class="material-icons" aria-hidden="true">cancel</span>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary" id="changePasswordBtn">
+                            <span class="material-icons" aria-hidden="true">save</span>
+                            <span class="btn-text">Update Password</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secret Question Modal -->
+    <div id="secretQuestionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Security Question</h3>
+                <button class="modal-close" onclick="closeSecretQuestionModal()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('profile') }}">
+                <input type="hidden" name="action" value="set_secret_question">
+                <div class="modal-body">
+                    <p class="help-text">Set up a secret question to help you recover your password if forgotten.</p>
+
+                    {% if current_user.is_authenticated and current_user.secret_question %}
+                    <div class="current-secret">
+                        <p><strong>Current Question:</strong> {{ current_user.secret_question }}</p>
+                        <p class="text-muted">You can update your security question below.</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-group">
+                        <label for="secret_question_modal">Secret Question</label>
+                        <select id="secret_question_modal" name="secret_question" required>
+                            <option value="">Choose a question...</option>
+                            <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                            <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                            <option value="What was the name of your first school?">What was the name of your first school?</option>
+                            <option value="What is your favorite childhood memory?">What is your favorite childhood memory?</option>
+                            <option value="What was your first car?">What was your first car?</option>
+                            <option value="What is the name of your favorite teacher?">What is the name of your favorite teacher?</option>
+                            <option value="What city were you born in?">What city were you born in?</option>
+                            <option value="What is your favorite book?">What is your favorite book?</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="secret_answer_modal">Answer</label>
+                        <input type="text" id="secret_answer_modal" name="secret_answer" required placeholder="Your answer">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeSecretQuestionModal()">Cancel</button>
+                    <button type="submit" class="btn-success">
+                        {% if current_user.is_authenticated and current_user.secret_question %}Update{% else %}Set{% endif %} Question
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>User Profile</h3>
+                <button class="modal-close" onclick="closeProfileModal()">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-modal-content">
+                    <!-- User Info -->
+                    <div class="profile-info-section">
+                        <div class="profile-avatar-large">
+                            <span class="avatar-text-xl">{{ current_user.username[0].upper() if current_user.is_authenticated else 'U' }}</span>
+                        </div>
+                        <h3>{{ current_user.username if current_user.is_authenticated else 'User' }}</h3>
+                        <p class="role-badge-large">{{ current_user.role.title() if current_user.is_authenticated else 'Guest' }}</p>
+                        <p class="join-date-large">Member since {{ current_user.created_at.strftime('%B %Y') if current_user.is_authenticated else 'N/A' }}</p>
+                    </div>
+
+                    <!-- Account Statistics -->
+                    <div class="profile-stats-section">
+                        <h4>Account Statistics</h4>
+                        <div class="stats-grid-modal">
+                            <div class="stat-item-modal">
+                                <span class="stat-label-modal">Total Sales Made</span>
+                                <span class="stat-value-modal">{{ current_user.sales|length if current_user.is_authenticated else 0 }}</span>
+                            </div>
+                            <div class="stat-item-modal">
+                                <span class="stat-label-modal">Account Type</span>
+                                <span class="stat-value-modal">{{ current_user.role.title() if current_user.is_authenticated else 'Guest' }}</span>
+                            </div>
+                            <div class="stat-item-modal">
+                                <span class="stat-label-modal">Last Login</span>
+                                <span class="stat-value-modal">Today</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Modal Styles -->
+    <style>
+    /* Modern Modal Design System */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: modalFadeIn 0.3s ease-out;
+    }
+
+    .modal-container {
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    .modal-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 24px 30px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+
+    .modal-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+    }
+
+    .modal-icon .material-icons {
+        font-size: 24px;
+        color: white;
+    }
+
+    .modal-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        flex: 1;
+    }
+
+    .modal-close {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .modal-close:hover {
+        background: #f3f4f6;
+        color: #374151;
+        transform: scale(1.05);
+    }
+
+    .modal-body {
+        padding: 30px;
+    }
+
+    .form-section {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 4px;
+    }
+
+    .form-label .material-icons {
+        font-size: 18px;
+        color: #6b7280;
+    }
+
+    .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        padding-right: 48px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-family: 'Inter', sans-serif;
+        background: white;
+        transition: all 0.2s ease;
+        outline: none;
+    }
+
+    .form-input:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .form-input:invalid:not(:placeholder-shown) {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+
+    .input-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #6b7280;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .input-toggle:hover {
+        color: #374151;
+        background: #f3f4f6;
+    }
+
+    .form-help {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 4px;
+    }
+
+    .password-strength {
+        margin-top: 16px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .strength-meter {
+        width: 100%;
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+
+    .strength-bar {
+        height: 100%;
+        width: 0%;
+        border-radius: 3px;
+        transition: all 0.3s ease;
+        background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
+    }
+
+    .strength-text {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .modal-footer {
+        padding: 24px 30px;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: white;
+        border: 2px solid #d1d5db;
+        border-radius: 10px;
+        color: #374151;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #5855eb 0%, #7c3aed 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    .btn-primary.loading {
+        opacity: 0.7;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .btn-text {
+        font-weight: 600;
+    }
+
+    /* Animations */
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            backdrop-filter: blur(0px);
+        }
+        to {
+            opacity: 1;
+            backdrop-filter: blur(8px);
+        }
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* Focus States for Accessibility */
+    .form-input:focus,
+    .input-toggle:focus,
+    .modal-close:focus,
+    .btn-primary:focus,
+    .btn-secondary:focus {
+        outline: 2px solid #6366f1;
+        outline-offset: 2px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 640px) {
+        .modal-container {
+            width: 95%;
+            margin: 20px;
+        }
+
+        .modal-header {
+            padding: 20px;
+            gap: 12px;
+        }
+
+        .modal-body {
+            padding: 24px 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            flex-direction: column;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .modal-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 12px;
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+        }
+
+        .form-section {
+            gap: 20px;
+        }
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        .modal-card {
+            background: #1f2937;
+            color: #f9fafb;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+            border-bottom-color: #4b5563;
+        }
+
+        .modal-title {
+            color: #f9fafb;
+        }
+
+        .form-input {
+            background: #374151;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+
+        .form-input:focus {
+            border-color: #6366f1;
+        }
+
+        .form-label {
+            color: #e5e7eb;
+        }
+
+        .form-help {
+            color: #9ca3af;
+        }
+
+        .password-strength {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        .modal-footer {
+            background: #374151;
+            border-top-color: #4b5563;
+        }
+
+        .btn-secondary {
+            background: #374151;
+            border-color: #4b5563;
+            color: #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+            border-color: #6b7280;
+        }
+    }
+    </style>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+
+    <script>
+    // User Menu Functions
+    function toggleUserMenu() {
+        const menu = document.getElementById('userMenu');
+        const arrow = document.querySelector('.dropdown-arrow');
+
+        if (menu && menu.style.display === 'block') {
+            menu.style.display = 'none';
+            if (arrow) arrow.textContent = '▼';
+        } else if (menu) {
+            menu.style.display = 'block';
+            if (arrow) arrow.textContent = '▲';
+        }
+    }
+
+    // Close user menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('userMenu');
+        const trigger = document.querySelector('.user-profile-trigger');
+
+        if (menu && trigger && !trigger.contains(event.target) && !menu.contains(event.target)) {
+            menu.style.display = 'none';
+            const arrow = document.querySelector('.dropdown-arrow');
+            if (arrow) arrow.textContent = '▼';
+        }
+    });
+
+    // Modal Functions
+    function openChangePasswordModal() {
+        const modal = document.getElementById('changePasswordModal');
+        const menu = document.getElementById('userMenu');
+        const arrow = document.querySelector('.dropdown-arrow');
+
+        if (modal) modal.style.display = 'flex';
+        if (menu) menu.style.display = 'none';
+        if (arrow) arrow.textContent = '▼';
+    }
+
+    function closeChangePasswordModal() {
+        const modal = document.getElementById('changePasswordModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function openSecretQuestionModal() {
+        const modal = document.getElementById('secretQuestionModal');
+        const menu = document.getElementById('userMenu');
+        const arrow = document.querySelector('.dropdown-arrow');
+
+        if (modal) modal.style.display = 'flex';
+        if (menu) menu.style.display = 'none';
+        if (arrow) arrow.textContent = '▼';
+    }
+
+    function closeSecretQuestionModal() {
+        const modal = document.getElementById('secretQuestionModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function openProfileModal() {
+        const modal = document.getElementById('profileModal');
+        const menu = document.getElementById('userMenu');
+        const arrow = document.querySelector('.dropdown-arrow');
+
+        if (modal) modal.style.display = 'flex';
+        if (menu) menu.style.display = 'none';
+        if (arrow) arrow.textContent = '▼';
+    }
+
+    function closeProfileModal() {
+        const modal = document.getElementById('profileModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    // Close modals when clicking outside
+    document.addEventListener('click', function(event) {
+        const modals = ['changePasswordModal', 'secretQuestionModal', 'profileModal'];
+        modals.forEach(function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal && event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    // Enhanced Password Modal Functions
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const toggleBtn = input ? input.nextElementSibling : null;
+
+        if (input && toggleBtn) {
+            if (input.type === 'password') {
+                input.type = 'text';
+                const icon = toggleBtn.querySelector('.material-icons');
+                if (icon) icon.textContent = 'visibility_off';
+                toggleBtn.setAttribute('aria-label', 'Hide password');
+            } else {
+                input.type = 'password';
+                const icon = toggleBtn.querySelector('.material-icons');
+                if (icon) icon.textContent = 'visibility';
+                toggleBtn.setAttribute('aria-label', 'Show password');
+            }
+        }
+    }
+
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        let feedback = [];
+
+        // Length check
+        if (password.length >= 8) strength += 1;
+        else feedback.push('At least 8 characters');
+
+        // Lowercase check
+        if (/[a-z]/.test(password)) strength += 1;
+        else feedback.push('Lowercase letter');
+
+        // Uppercase check
+        if (/[A-Z]/.test(password)) strength += 1;
+        else feedback.push('Uppercase letter');
+
+        // Number check
+        if (/\d/.test(password)) strength += 1;
+        else feedback.push('Number');
+
+        // Special character check
+        if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+        else feedback.push('Special character');
+
+        return { strength: strength, feedback: feedback };
+    }
+
+    function updatePasswordStrength() {
+        const password = document.getElementById('new_password');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+
+        if (!password || !strengthBar || !strengthText) return;
+
+        const pwd = password.value;
+
+        if (!pwd) {
+            strengthBar.style.width = '0%';
+            strengthText.textContent = 'Password strength: Weak';
+            return;
+        }
+
+        const result = checkPasswordStrength(pwd);
+        const percentage = (result.strength / 5) * 100;
+
+        strengthBar.style.width = percentage + '%';
+
+        let strengthLabel = 'Weak';
+        let color = '#ef4444'; // red
+
+        if (result.strength >= 4) {
+            strengthLabel = 'Strong';
+            color = '#10b981'; // green
+        } else if (result.strength >= 3) {
+            strengthLabel = 'Medium';
+            color = '#f59e0b'; // amber
+        }
+
+        strengthBar.style.background = 'linear-gradient(90deg, ' + color + ' 0%, ' + color + ' 100%)';
+        strengthText.textContent = 'Password strength: ' + strengthLabel;
+    }
+
+    // Enhanced form validation and submission
+    document.addEventListener('DOMContentLoaded', function() {
+        // Password confirmation validation
+        const newPassword = document.getElementById('new_password');
+        const confirmPassword = document.getElementById('confirm_password');
+
+        if (newPassword && confirmPassword) {
+            function validatePasswords() {
+                if (newPassword.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('Passwords do not match');
+                } else {
+                    confirmPassword.setCustomValidity('');
+                }
+            }
+
+            newPassword.addEventListener('input', validatePasswords);
+            confirmPassword.addEventListener('input', validatePasswords);
+        }
+
+        // Password strength monitoring
+        if (newPassword) {
+            newPassword.addEventListener('input', updatePasswordStrength);
+        }
+
+        // Enhanced form submission with loading state
+        const changePasswordForm = document.querySelector('#changePasswordModal form');
+        if (changePasswordForm) {
+            changePasswordForm.addEventListener('submit', function(e) {
+                const submitBtn = document.getElementById('changePasswordBtn');
+                if (submitBtn) {
+                    submitBtn.classList.add('loading');
+                    submitBtn.innerHTML = '<span class="material-icons" aria-hidden="true">hourglass_empty</span><span class="btn-text">Updating...</span>';
+                }
+            });
+        }
+
+        // Keyboard navigation enhancements
+        document.addEventListener('keydown', function(e) {
+            // Close modal on Escape
+            if (e.key === 'Escape') {
+                const openModal = document.querySelector('.modal-overlay[style*="display: flex"]');
+                if (openModal) {
+                    const modalId = openModal.id;
+                    if (modalId === 'changePasswordModal') closeChangePasswordModal();
+                    else if (modalId === 'secretQuestionModal') closeSecretQuestionModal();
+                    else if (modalId === 'profileModal') closeProfileModal();
+                }
+            }
+        });
+
+        // Enhanced focus management
+        const modalOverlays = document.querySelectorAll('.modal-overlay');
+        modalOverlays.forEach(function(overlay) {
+            overlay.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    const focusableElements = overlay.querySelectorAll(
+                        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                    );
+                    const firstElement = focusableElements[0];
+                    const lastElement = focusableElements[focusableElements.length - 1];
+
+                    if (e.shiftKey) {
+                        if (document.activeElement === firstElement) {
+                            lastElement.focus();
+                            e.preventDefault();
+                        }
+                    } else {
+                        if (document.activeElement === lastElement) {
+                            firstElement.focus();
+                            e.preventDefault();
+                        }
+                    }
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>

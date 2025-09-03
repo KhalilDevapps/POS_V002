@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - POS System{% endblock %}
+
+{% block content %}
+<section id="dashboard" class="active">
+    <div class="dashboard-header">
+        <h2>Dashboard</h2>
+        <div class="dashboard-actions">
+            <button class="primary" onclick="showSection('sales')">💰 Quick Sale</button>
+            <button class="primary" onclick="showSection('inventory')">📦 Add Item</button>
+            <button onclick="generateReport()">📊 Generate Report</button>
+        </div>
+    </div>
+
+<!-- Key Metrics -->
+<div class="metrics-grid">
+    <div class="metric-card">
+        <div class="metric-icon">💰</div>
+        <div class="metric-content">
+            <h3>{{ "{:,.0f}".format(daily_sales) }}</h3>
+            <p>Daily Sales</p>
+            <span class="metric-change">+12%</span>
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-icon">📈</div>
+        <div class="metric-content">
+            <h3>{{ "{:,.0f}".format(weekly_sales) }}</h3>
+            <p>Weekly Sales</p>
+            <span class="metric-change">+8%</span>
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-icon">📊</div>
+        <div class="metric-content">
+            <h3>{{ "{:,.0f}".format(monthly_sales) }}</h3>
+            <p>Monthly Sales</p>
+            <span class="metric-change">+15%</span>
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-icon">💵</div>
+        <div class="metric-content">
+            <h3>{{ "{:,.0f}".format(total_profit) }}</h3>
+            <p>Total Profit</p>
+            <span class="metric-change positive">+18%</span>
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-icon">🛒</div>
+        <div class="metric-content">
+            <h3>{{ total_transactions }}</h3>
+            <p>Transactions</p>
+            <span class="metric-change">+10%</span>
+        </div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-icon">📦</div>
+        <div class="metric-content">
+            <h3>{{ total_items }}</h3>
+            <p>Inventory Items</p>
+            <span class="metric-change">+5%</span>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts Section -->
+<div class="alerts-section">
+    <h3>⚠️ Alerts & Notifications</h3>
+    <div id="alertsContainer">
+        {% if out_of_stock > 0 %}
+        <div class="alert-card critical">
+            <div class="alert-icon">🚨</div>
+            <div class="alert-content">
+                <h4>Out of Stock Items</h4>
+                <p>{{ out_of_stock }} item(s) are out of stock</p>
+            </div>
+            <a href="{{ url_for('inventory') }}" class="alert-action-btn">View</a>
+        </div>
+        {% endif %}
+
+        {% if low_stock > 0 %}
+        <div class="alert-card warning">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+                <h4>Low Stock Alert</h4>
+                <p>{{ low_stock }} item(s) running low</p>
+            </div>
+            <a href="{{ url_for('low_stock') }}" class="alert-action-btn">View Details</a>
+        </div>
+        {% endif %}
+
+        {% if out_of_stock == 0 and low_stock == 0 %}
+        <div class="alert-card success">
+            <div class="alert-icon">✅</div>
+            <div class="alert-content">
+                <h4>System Status</h4>
+                <p>All systems operational</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Dashboard Content Grid -->
+<div class="dashboard-grid">
+    <!-- Top Selling Items -->
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h3>🏆 Top Selling Items</h3>
+            <a href="{{ url_for('reports') }}" class="widget-action">View All</a>
+        </div>
+        <div class="widget-content">
+            <ul class="top-items-list">
+                {% for item in top_items %}
+                <li class="top-item">
+                    <span class="rank">#{{ loop.index }}</span>
+                    <span class="item-name">{{ item.name }}</span>
+                    <span class="item-sold">{{ item.sold_quantity }} sold</span>
+                </li>
+                {% endfor %}
+                {% if not top_items %}
+                <li class="no-data">No sales data yet</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Low Stock Alerts -->
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h3>📉 Low Stock Items</h3>
+            <a href="{{ url_for('low_stock') }}" class="widget-action">View All</a>
+        </div>
+        <div class="widget-content">
+            <div class="low-stock-list">
+                {% for item in top_items %}
+                    {% if item.quantity <= 5 %}
+                    <div class="alert-item {% if item.quantity == 0 %}critical{% else %}warning{% endif %}">
+                        <span class="alert-icon">{% if item.quantity == 0 %}🚨{% else %}⚠️{% endif %}</span>
+                        <div class="alert-details">
+                            <strong>{{ item.name }}</strong>
+                            <span>{% if item.quantity == 0 %}OUT OF STOCK{% else %}Low Stock: {{ item.quantity }} remaining{% endif %}</span>
+                        </div>
+                        <a href="{{ url_for('inventory') }}" class="alert-action">Restock</a>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+                {% set low_stock_count = 0 %}
+                {% for item in top_items %}
+                    {% if item.quantity <= 5 %}
+                        {% set low_stock_count = low_stock_count + 1 %}
+                    {% endif %}
+                {% endfor %}
+                {% if not top_items or low_stock_count == 0 %}
+                <p class="no-alerts">All items are well stocked! 🎉</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h3>🕒 Recent Transactions</h3>
+            <a href="{{ url_for('reports') }}" class="widget-action">View All</a>
+        </div>
+        <div class="widget-content">
+            <div class="recent-sales-list">
+                {% for sale in recent_sales %}
+                <div class="recent-sale-item">
+                    <div class="sale-time">{{ sale.created_at.strftime('%H:%M') }}</div>
+                    <div class="sale-details">
+                        <span class="sale-amount">{{ "{:,.0f}".format(sale.final_amount) }} AFA</span>
+                        <span class="sale-items">{{ sale.items|length }} item(s)</span>
+                    </div>
+                </div>
+                {% endfor %}
+                {% if not recent_sales %}
+                <p class="no-data">No recent transactions</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="dashboard-widget">
+        <div class="widget-header">
+            <h3>📈 Quick Stats</h3>
+        </div>
+        <div class="widget-content">
+            <div class="quick-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Avg Transaction:</span>
+                    <span class="stat-value">{{ "{:,.0f}".format(daily_sales / (1 if total_transactions == 0 else total_transactions)) }} AFA</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Profit Margin:</span>
+                    <span class="stat-value">{{ "{:.1f}".format((total_profit / daily_sales * 100) if daily_sales > 0 else 0) }}%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Items Sold Today:</span>
+                    {% set total_sold = 0 %}
+                    {% for item in top_items %}
+                        {% set total_sold = total_sold + item.sold_quantity %}
+                    {% endfor %}
+                    <span class="stat-value">{{ total_sold }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Out of Stock:</span>
+                    <span class="stat-value">{{ out_of_stock }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</section>
+{% endblock %}

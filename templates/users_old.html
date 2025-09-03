@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - POS System{% endblock %}
+
+{% block content %}
+<section id="users" class="users-section">
+
+    <!-- Header Section -->
+    <div class="users-header">
+        <div class="header-content">
+            <div class="header-icon">
+                <span class="material-icons">people</span>
+            </div>
+            <div class="header-text">
+                <h1>User Management</h1>
+                <p>Manage system users, roles, and permissions</p>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ users|length }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</div>
+                <div class="stat-label">Admins</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ users|selectattr('role', 'equalto', 'cashier')|list|length }}</div>
+                <div class="stat-label">Cashiers</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Section -->
+    <div class="add-user-section">
+        <div class="add-user-header">
+            <h2><span class="material-icons">person_add</span> Add New User</h2>
+            <p>Create a new user account with appropriate permissions</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('users') }}" class="add-user-form">
+            {{ form.hidden_tag() }}
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="username">
+                        <span class="material-icons">person</span>
+                        Username
+                    </label>
+                    {{ form.username(class="form-input", placeholder="Enter username") }}
+                    {% if form.username.errors %}
+                        <div class="error-message">
+                            {% for error in form.username.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        <span class="material-icons">lock</span>
+                        Password
+                    </label>
+                    {{ form.password(class="form-input", placeholder="Enter password") }}
+                    {% if form.password.errors %}
+                        <div class="error-message">
+                            {% for error in form.password.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="role">
+                        <span class="material-icons">admin_panel_settings</span>
+                        Role
+                    </label>
+                    {{ form.role(class="form-select") }}
+                    {% if form.role.errors %}
+                        <div class="error-message">
+                            {% for error in form.role.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group submit-group">
+                    {{ form.submit(class="btn-add-user") }}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users List Section -->
+    <div class="users-list-section">
+        <div class="users-list-header">
+            <h2><span class="material-icons">group</span> System Users</h2>
+            <div class="search-container">
+                <span class="material-icons search-icon">search</span>
+                <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
+            </div>
+        </div>
+
+        <div class="users-grid">
+            <!-- Debug: Total users = {{ users|length }} -->
+            {% for user in users %}
+            <div class="user-card" data-user-id="{{ user.id }}">
+                <div class="user-card-header">
+                    <div class="user-avatar">
+                        <span class="avatar-text">{{ user.username[0].upper() }}</span>
+                    </div>
+                    <div class="user-info">
+                        <h3 class="user-name">{{ user.username }}</h3>
+                        <span class="user-role role-{{ user.role }}">
+                            <span class="material-icons">
+                                {% if user.role == 'admin' %}admin_panel_settings{% else %}point_of_sale{% endif %}
+                            </span>
+                            {{ user.role.title() }}
+                        </span>
+                    </div>
+                    <div class="user-actions">
+                        {% if user.username != current_user.username %}
+                        <button onclick="editUser({{ user.id }})" class="btn-action btn-edit" title="Edit User">
+                            <span class="material-icons">edit</span>
+                        </button>
+                        <button onclick="deleteUser({{ user.id }}, '{{ user.username|e }}')" class="btn-action btn-delete" title="Delete User">
+                            <span class="material-icons">delete</span>
+                        </button>
+                        {% else %}
+                        <div class="current-user-badge">
+                            <span class="material-icons">person</span>
+                            You
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="user-card-body">
+                    <div class="user-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Created:</span>
+                            <span class="detail-value">{{ user.created_at.strftime('%b %d, %Y') }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Last Active:</span>
+                            <span class="detail-value">Today</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Security:</span>
+                            <span class="detail-value">
+                                {% if user.secret_question %}
+                                <span class="security-status secure">
+                                    <span class="material-icons">security</span>
+                                    Secure
+                                </span>
+                                {% else %}
+                                <span class="security-status warning">
+                                    <span class="material-icons">warning</span>
+                                    Setup Required
+                                </span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not users %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <span class="material-icons">people_outline</span>
+            </div>
+            <h3>No Users Found</h3>
+            <p>Add your first user using the form above to get started.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="modal">
+    <div class="modal-content large-modal">
+        <div class="modal-header">
+            <h3><span class="material-icons">edit</span> Edit User</h3>
+            <button class="modal-close" onclick="closeEditModal()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editUserForm" class="edit-user-form">
+                <input type="hidden" id="editUserId" name="user_id">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="editUsername">
+                            <span class="material-icons">person</span>
+                            Username
+                        </label>
+                        <input type="text" id="editUsername" name="username" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editRole">
+                            <span class="material-icons">admin_panel_settings</span>
+                            Role
+                        </label>
+                        <select id="editRole" name="role" class="form-select" required>
+                            <option value="cashier">Cashier</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editPassword">
+                            <span class="material-icons">lock</span>
+                            New Password (Optional)
+                        </label>
+                        <input type="password" id="editPassword" name="password" class="form-input" placeholder="Leave empty to keep current password" minlength="6">
+                        <small class="form-hint">Leave empty to keep the current password</small>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+            <button type="button" class="btn-primary" onclick="saveUserChanges()">Save Changes</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Debug: Check if users are loaded
+console.log('Users page loaded');
+
+// Search functionality
+const searchInput = document.getElementById('userSearch');
+if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const userCards = document.querySelectorAll('.user-card');
+
+        userCards.forEach(card => {
+            const username = card.querySelector('.user-name').textContent.toLowerCase();
+            const role = card.querySelector('.user-role').textContent.toLowerCase();
+
+            if (username.includes(searchTerm) || role.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+}
+
+// Edit user functionality
+function editUser(userId) {
+    // Get user data from the card
+    const userCard = document.querySelector('[data-user-id="' + userId + '"]');
+    if (!userCard) return;
+
+    const username = userCard.querySelector('.user-name').textContent.trim();
+    const roleText = userCard.querySelector('.user-role').textContent.trim();
+    const role = roleText.toLowerCase().includes('admin') ? 'admin' : 'cashier';
+
+    document.getElementById('editUserId').value = userId;
+    document.getElementById('editUsername').value = username;
+    document.getElementById('editRole').value = role;
+    document.getElementById('editPassword').value = '';
+
+    document.getElementById('editUserModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('editUserModal').style.display = 'none';
+}
+
+// Save user changes
+async function saveUserChanges() {
+    const userId = document.getElementById('editUserId').value;
+    const username = document.getElementById('editUsername').value.trim();
+    const role = document.getElementById('editRole').value;
+    const password = document.getElementById('editPassword').value;
+
+    if (!username) {
+        alert('Username is required');
+        return;
+    }
+
+    const updateData = {
+        username: username,
+        role: role
+    };
+
+    if (password) {
+        updateData.password = password;
+    }
+
+    try {
+        const response = await fetch(`/api/users/${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert('User updated successfully!');
+            closeEditModal();
+            location.reload(); // Refresh to show updated data
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error updating user:', error);
+        alert('Error updating user. Please try again.');
+    }
+}
+
+// Delete user functionality
+async function deleteUser(userId, username) {
+    if (!confirm('Are you sure you want to delete user "' + username + '"? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/users/${userId}`, {
+            method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert('User deleted successfully!');
+            location.reload(); // Refresh to show updated data
+        } else {
+            alert('Error: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        alert('Error deleting user. Please try again.');
+    }
+}
+
+// Close modals when clicking outside
+document.addEventListener('click', function(event) {
+    const modals = ['editUserModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal && event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+});
+
+// Handle keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeEditModal();
+    }
+});
+</script>
+{% endblock %}

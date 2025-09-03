@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Sign in - POS System{% endblock %}
+
+{% block login_content %}
+<div class="login-page">
+    <!-- Simple Background -->
+    <div class="login-bg">
+        <div class="bg-gradient"></div>
+    </div>
+
+    <!-- Login Container -->
+    <div class="login-wrapper">
+        <div class="login-card">
+            <!-- Logo Section -->
+            <div class="login-header">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <span class="material-icons">shopping_cart</span>
+                    </div>
+                    <h1>POS System</h1>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="login-body">
+                <div class="welcome-text">
+                    <h2>Welcome back</h2>
+                    <p>Please sign in to continue</p>
+                </div>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-messages">
+                            {% for category, message in messages %}
+                                <div class="flash-message flash-{{ category }}">
+                                    <span class="material-icons">
+                                        {% if category == 'success' %}check_circle{% elif category == 'error' %}error{% else %}info{% endif %}
+                                    </span>
+                                    <span>{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" class="login-form">
+                    {{ form.hidden_tag() }}
+
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            <span class="material-icons input-icon">person</span>
+                            {{ form.username(class="form-input", placeholder="Username") }}
+                        </div>
+                        {% if form.username.errors %}
+                            <div class="error-message">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            <span class="material-icons input-icon">lock</span>
+                            {{ form.password(class="form-input", placeholder="Password") }}
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="error-message">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn-login">
+                        <span class="material-icons">login</span>
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="login-footer">
+                    <a href="{{ url_for('forgot_password') }}" class="forgot-link">Forgot password?</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Login Page Styles */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+.login-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.bg-gradient {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+}
+
+.login-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 400px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.login-header {
+    padding: 30px 30px 20px;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+}
+
+.logo-section .logo-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.logo-section .logo-icon .material-icons {
+    font-size: 30px;
+    color: #fff;
+}
+
+.logo-section h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #202124;
+}
+
+.login-body {
+    padding: 30px;
+}
+
+.welcome-text h2 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #202124;
+}
+
+.welcome-text p {
+    margin: 0 0 25px 0;
+    color: #5f6368;
+    font-size: 14px;
+}
+
+.flash-messages {
+    margin-bottom: 20px;
+}
+
+.flash-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.flash-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.flash-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.flash-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.login-form {
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #5f6368;
+    font-size: 18px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 14px 14px 48px;
+    border: 2px solid #e8eaed;
+    border-radius: 10px;
+    font-size: 16px;
+    color: #202124;
+    background: #fff;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+.error-message {
+    color: #ea4335;
+    font-size: 13px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.error-message::before {
+    content: '⚠️';
+    font-size: 14px;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #1a73e8, #1557b0);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-login:hover {
+    background: linear-gradient(135deg, #1557b0, #0d47a1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.3);
+}
+
+.btn-login .material-icons {
+    font-size: 18px;
+}
+
+.login-footer {
+    text-align: center;
+    padding: 20px 30px;
+    background: #f8f9fa;
+    border-top: 1px solid #e8eaed;
+}
+
+.forgot-link {
+    color: #1a73e8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.forgot-link:hover {
+    color: #1557b0;
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .login-wrapper {
+        padding: 16px;
+    }
+
+    .login-card {
+        margin: 0;
+    }
+
+    .login-header,
+    .login-body,
+    .login-footer {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .login-header {
+        padding-top: 25px;
+        padding-bottom: 15px;
+    }
+
+    .login-body {
+        padding-top: 25px;
+        padding-bottom: 25px;
+    }
+}
+</style>
+
+<script>
+// Auto-focus on username field
+document.addEventListener('DOMContentLoaded', function() {
+    const usernameInput = document.querySelector('input[name="username"]');
+    if (usernameInput) {
+        usernameInput.focus();
+    }
+});
+</script>
+{% endblock %}

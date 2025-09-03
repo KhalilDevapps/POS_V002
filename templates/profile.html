@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - POS System{% endblock %}
+
+{% block content %}
+<section id="profile" class="active">
+    <h2>👤 User Profile</h2>
+
+    <div class="profile-container">
+        <!-- User Info Card -->
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <span class="avatar-text">{{ current_user.username[0].upper() }}</span>
+                </div>
+                <div class="profile-info">
+                    <h3>{{ current_user.username }}</h3>
+                    <p class="role-badge">{{ current_user.role.title() }}</p>
+                    <p class="join-date">Member since {{ current_user.created_at.strftime('%B %Y') }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Section -->
+        <div class="profile-card">
+            <h3>🔒 Change Password</h3>
+            <form method="POST" action="{{ url_for('profile') }}">
+                <input type="hidden" name="action" value="change_password">
+                <div class="form-group">
+                    <label for="current_password">Current Password</label>
+                    <input type="password" id="current_password" name="current_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm New Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Change Password</button>
+            </form>
+        </div>
+
+        <!-- Secret Question Section -->
+        <div class="profile-card">
+            <h3>🛡️ Security Question</h3>
+            <p class="help-text">Set up a secret question to help you recover your password if forgotten.</p>
+
+            {% if current_user.secret_question %}
+            <div class="current-secret">
+                <p><strong>Current Question:</strong> {{ current_user.secret_question }}</p>
+                <p class="text-muted">Secret question is already set up.</p>
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('profile') }}">
+                <input type="hidden" name="action" value="set_secret_question">
+                <div class="form-group">
+                    <label for="secret_question">Secret Question</label>
+                    <select id="secret_question" name="secret_question" required>
+                        <option value="">Choose a question...</option>
+                        <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                        <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                        <option value="What was the name of your first school?">What was the name of your first school?</option>
+                        <option value="What is your favorite childhood memory?">What is your favorite childhood memory?</option>
+                        <option value="What was your first car?">What was your first car?</option>
+                        <option value="What is the name of your favorite teacher?">What is the name of your favorite teacher?</option>
+                        <option value="What city were you born in?">What city were you born in?</option>
+                        <option value="What is your favorite book?">What is your favorite book?</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="secret_answer">Answer</label>
+                    <input type="text" id="secret_answer" name="secret_answer" required placeholder="Your answer">
+                </div>
+                <button type="submit" class="btn btn-success">
+                    {% if current_user.secret_question %}Update{% else %}Set{% endif %} Secret Question
+                </button>
+            </form>
+        </div>
+
+        <!-- Account Statistics -->
+        <div class="profile-card">
+            <h3>📊 Account Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Total Sales Made</span>
+                    <span class="stat-value">{{ current_user.sales|length }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Account Type</span>
+                    <span class="stat-value">{{ current_user.role.title() }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Last Login</span>
+                    <span class="stat-value">Today</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logout Section -->
+        <div class="profile-card logout-section">
+            <h3>🚪 Account Actions</h3>
+            <p class="logout-description">Sign out of your account securely. Make sure to save any unsaved work before logging out.</p>
+            <button type="button" class="btn btn-logout" onclick="openLogoutModal()" aria-label="Logout from account">
+                <span class="material-icons">logout</span>
+                <span>Logout</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Logout Confirmation Modal -->
+<div id="logoutModal" class="modal-overlay" role="dialog" aria-labelledby="logoutTitle" aria-modal="true">
+    <div class="modal-container">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <span class="material-icons" aria-hidden="true">logout</span>
+                </div>
+                <h2 id="logoutTitle" class="modal-title">Confirm Logout</h2>
+                <button class="modal-close" onclick="closeLogoutModal()" aria-label="Close logout confirmation modal">
+                    <span class="material-icons" aria-hidden="true">close</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="logout-confirmation-content">
+                    <div class="logout-warning">
+                        <span class="material-icons warning-icon">warning</span>
+                        <p>Are you sure you want to log out?</p>
+                        <small>Any unsaved changes will be lost.</small>
+                    </div>
+                    <div class="logout-info">
+                        <div class="info-item">
+                            <span class="material-icons">person</span>
+                            <span>{{ current_user.username }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="material-icons">schedule</span>
+                            <span>Last login: Today</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeLogoutModal()">
+                    <span class="material-icons" aria-hidden="true">cancel</span>
+                    Cancel
+                </button>
+                <a href="{{ url_for('logout') }}" class="btn-logout-confirm" role="button">
+                    <span class="material-icons" aria-hidden="true">logout</span>
+                    <span>Yes, Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Password confirmation validation
+    const newPassword = document.getElementById('new_password');
+    const confirmPassword = document.getElementById('confirm_password');
+
+    function validatePasswords() {
+        if (newPassword.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity('Passwords do not match');
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    }
+
+    newPassword.addEventListener('input', validatePasswords);
+    confirmPassword.addEventListener('input', validatePasswords);
+
+    // Logout modal functions
+    window.openLogoutModal = function() {
+        const modal = document.getElementById('logoutModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            // Focus management for accessibility
+            const closeBtn = modal.querySelector('.modal-close');
+            if (closeBtn) closeBtn.focus();
+        }
+    };
+
+    window.closeLogoutModal = function() {
+        const modal = document.getElementById('logoutModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('logoutModal');
+        if (modal && event.target === modal) {
+            closeLogoutModal();
+        }
+    });
+
+    // Keyboard navigation for modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('logoutModal');
+            if (modal && modal.style.display === 'flex') {
+                closeLogoutModal();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
