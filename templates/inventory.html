@@ -31,72 +31,254 @@
     </div>
 </div>
 
-<form method="POST" action="{{ url_for('inventory') }}">
-    {{ form.hidden_tag() }}
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-        <div>
-            {{ form.name.label }}
-            {{ form.name(class="form-control") }}
-            {% if form.name.errors %}
-                <div class="error-message">
-                    {% for error in form.name.errors %}
-                        {{ error }}
+
+<div class="add-item-card">
+    <form method="POST" action="{{ url_for('inventory') }}">
+        {{ form.hidden_tag() }}
+        <div class="add-item-single-line">
+            <div class="form-group">
+                {{ form.name.label }}
+                {{ form.name(class="form-control") }}
+                {% if form.name.errors %}
+                <div class="error-message">{% for error in form.name.errors %}{{ error }}{% endfor %}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="category_id">Category</label>
+                <select id="category_id" name="category_id" class="form-control">
+                    <option value="">Select Category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
                     {% endfor %}
-                </div>
-            {% endif %}
+                </select>
+            </div>
+            <div class="form-group">
+                {{ form.buying_price.label }}
+                {{ form.buying_price(class="form-control") }}
+                {% if form.buying_price.errors %}
+                <div class="error-message">{% for error in form.buying_price.errors %}{{ error }}{% endfor %}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.selling_price.label }}
+                {{ form.selling_price(class="form-control") }}
+                {% if form.selling_price.errors %}
+                <div class="error-message">{% for error in form.selling_price.errors %}{{ error }}{% endfor %}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.quantity.label }}
+                {{ form.quantity(class="form-control") }}
+                {% if form.quantity.errors %}
+                <div class="error-message">{% for error in form.quantity.errors %}{{ error }}{% endfor %}</div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn-primary add-item-btn"><span class="material-icons">add_circle</span> Add Item</button>
+            </div>
+            <div class="form-group">
+                <label for="expiry_date">Expiry Date</label>
+                <input type="date" id="expiry_date" name="expiry_date" class="form-control">
+            </div>
         </div>
-        <div>
-            {{ form.buying_price.label }}
-            {{ form.buying_price(class="form-control") }}
-            {% if form.buying_price.errors %}
-                <div class="error-message">
-                    {% for error in form.buying_price.errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        <div>
-            {{ form.selling_price.label }}
-            {{ form.selling_price(class="form-control") }}
-            {% if form.selling_price.errors %}
-                <div class="error-message">
-                    {% for error in form.selling_price.errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        <div>
-            {{ form.quantity.label }}
-            {{ form.quantity(class="form-control") }}
-            {% if form.quantity.errors %}
-                <div class="error-message">
-                    {% for error in form.quantity.errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-        <div style="align-self: end;">
-            {{ form.submit(class="primary") }}
-        </div>
-    </div>
-</form>
+    </form>
+</div>
+<style>
+.add-item-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(44,62,80,0.10);
+    padding: 32px 40px 22px 40px;
+    margin-bottom: 32px;
+    width: 95vw;
+    max-width: 1800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.add-item-single-line {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 20px;
+    align-items: end;
+    justify-content: space-between;
+    width: 100%;
+    overflow-x: auto;
+    padding: 0 20px;
+}
+
+.add-item-single-line .form-group {
+    flex: 1;
+    min-width: 160px;
+    max-width: 220px;
+}
+
+.add-item-single-line .form-group:nth-last-child(1) {
+    flex: 1;
+    min-width: 200px;
+    max-width: 280px;
+}
+
+.add-item-single-line .form-group:nth-last-child(2) {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 160px;
+}
+.add-item-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 26px;
+    font-size: 1.08rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(102,126,234,0.10);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.10);
+}
+.add-item-btn:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea);
+    box-shadow: 0 6px 24px rgba(102,126,234,0.18);
+}
+.form-group label {
+    font-weight: 700;
+    color: #181818;
+}
+.form-group input, .form-group select {
+    background: #fff;
+    color: #181818;
+    border: 1.5px solid #e0e0e0;
+    font-size: 1.05rem;
+    padding: 10px 12px;
+    border-radius: 7px;
+    margin-top: 2px;
+}
+.form-group input:focus, .form-group select:focus {
+    border-color: #667eea;
+    outline: none;
+}
+.error-message {
+    color: #e74c3c;
+    font-size: 0.92em;
+    margin-top: 3px;
+}
+.modern-table td, .modern-table th {
+    color: #181818;
+    font-size: 1.05rem;
+    background: #fff;
+    letter-spacing: 0.01em;
+    vertical-align: middle;
+    border-bottom: 1.5px solid #f0f0f0;
+}
+.modern-table th, .modern-table td {
+    padding: 18px 14px;
+}
+.modern-table thead th {
+    background: #f4f6fa;
+    font-weight: 700;
+    border-bottom: 2.5px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    color: #181818;
+    font-size: 1.08rem;
+}
+.modern-table tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+.modern-table tbody tr:hover {
+    background: #e3e8f0;
+    transition: background 0.2s;
+}
+.icon-btn {
+    background: #f4f6fa;
+    border: none;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    font-size: 1.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(44,62,80,0.07);
+    margin-right: 4px;
+}
+.icon-btn:hover {
+    background: #e0e7ef;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.10);
+}
+.status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.status-in-stock {
+    background: #e6f9ed;
+    color: #0e7c4d;
+}
+.status-low-stock {
+    background: #fff7d6;
+    color: #b88900;
+}
+.status-out-of-stock {
+    background: #ffeaea;
+    color: #c0392b;
+}
+.expired-text {
+    color: #c0392b;
+    font-weight: 700;
+}
+.expiry-warning {
+    color: #b88900;
+    font-weight: 700;
+}
+
+/* Responsive table styles */
+@media (max-width: 768px) {
+    #inventoryTable {
+        font-size: 0.875rem;
+    }
+
+    #inventoryTable th,
+    #inventoryTable td {
+        padding: 8px 4px;
+    }
+
+    .status-badge {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+    }
+}
+</style>
 
 <h3>Items</h3>
 <div style="margin-bottom: 10px;">
     <input type="text" id="searchInventory" placeholder="Search items..." style="padding: 8px; width: 60%; max-width: 300px;" />
-    <button onclick="addSampleItems()" style="margin-left: 10px; padding: 8px 12px;" class="secondary">Add Sample Items</button>
+    <button id="printSelectedBtn" onclick="printSelectedBarcodes()" style="margin-left: 10px; padding: 8px 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 4px; cursor: pointer; display: none;">
+        🖨️ Print Selected Barcodes
+    </button>
+    <button id="selectAllBtn" onclick="toggleSelectAll()" style="margin-left: 10px; padding: 8px 12px;" class="info">Select All</button>
 </div>
 
-<table id="inventoryTable">
+<table id="inventoryTable" class="modern-table">
     <thead>
         <tr>
+            <th><input type="checkbox" id="selectAllCheckbox" onclick="selectAllItems(this.checked)"></th>
             <th>Name</th>
+            <th>Category</th>
             <th>Buying Price</th>
             <th>Selling Price</th>
             <th>Qty</th>
+            <th>Status</th>
+            <th>Expiry</th>
             <th>Barcode</th>
             <th>Actions</th>
         </tr>
@@ -104,19 +286,175 @@
     <tbody>
         {% for item in items %}
         <tr>
+            <td><input type="checkbox" class="item-checkbox" value="{{ item.id }}" onclick="updateSelectedCount()"></td>
             <td>{{ item.name }}</td>
+            <td>{{ item.category.name if item.category else 'No Category' }}</td>
             <td>{{ "{:,.0f}".format(item.buying_price) }}</td>
             <td>{{ "{:,.0f}".format(item.selling_price) }}</td>
             <td>{{ item.quantity }}</td>
+            <td>
+                <span class="status-badge status-{{ item.status.lower().replace(' ', '-') }}">
+                    {{ item.status }}
+                </span>
+                {% if item.is_expired %}
+                <br><small class="expired-text">Expired</small>
+                {% elif item.days_until_expiry and item.days_until_expiry <= 30 %}
+                <br><small class="expiry-warning">{{ item.days_until_expiry }} days left</small>
+                {% endif %}
+            </td>
+            <td>
+                {% if item.expiry_date %}
+                    {{ item.expiry_date.strftime('%Y-%m-%d') }}
+                {% else %}
+                    No Expiry
+                {% endif %}
+            </td>
             <td>
                 {{ item.barcode }}<br>
                 <small>{{ "{:,.0f}".format(item.selling_price) }} AFA</small>
             </td>
             <td>
-                <button onclick="editItem('{{ item.id }}')" class="warning">✏️ Edit</button>
-                <button onclick="printBarcode('{{ item.id }}')" class="info">🖨️ Print Barcode</button>
-                <button onclick="deleteItem('{{ item.id }}')" class="danger">Delete</button>
+                <button onclick="editItem('{{ item.id }}')" class="icon-btn warning" title="Edit Item"><span class="material-icons">edit</span></button>
+                <button onclick="printBarcode('{{ item.id }}')" class="icon-btn info" title="Print Barcode"><span class="material-icons">print</span></button>
+                <button onclick="confirmDeleteItem('{{ item.id }}')" class="icon-btn danger" title="Delete Item"><span class="material-icons">delete</span></button>
             </td>
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Delete Item</h3>
+            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete this item? This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+            <button type="button" class="btn-danger" id="confirmDeleteBtn">Delete</button>
+        </div>
+    </div>
+</div>
+<style>
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(44,62,80,0.07);
+    margin-bottom: 30px;
+}
+.modern-table td, .modern-table th {
+    color: #181818;
+    font-size: 1.05rem;
+    background: #fff;
+    letter-spacing: 0.01em;
+    vertical-align: middle;
+    border-bottom: 1.5px solid #f0f0f0;
+}
+.modern-table th, .modern-table td {
+    padding: 18px 14px;
+}
+.modern-table thead th {
+    background: #f4f6fa;
+    font-weight: 700;
+    border-bottom: 2.5px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    color: #181818;
+    font-size: 1.08rem;
+}
+.modern-table tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+.modern-table tbody tr:hover {
+    background: #e3e8f0;
+    transition: background 0.2s;
+}
+.icon-btn {
+    background: #f4f6fa;
+    border: none;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    font-size: 1.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(44,62,80,0.07);
+    margin-right: 4px;
+}
+.icon-btn:hover {
+    background: #e0e7ef;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.10);
+}
+.status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.status-in-stock {
+    background: #e6f9ed;
+    color: #0e7c4d;
+}
+.status-low-stock {
+    background: #fff7d6;
+    color: #b88900;
+}
+.status-out-of-stock {
+    background: #ffeaea;
+    color: #c0392b;
+}
+.expired-text {
+    color: #c0392b;
+    font-weight: 700;
+}
+.expiry-warning {
+    color: #b88900;
+    font-weight: 700;
+}
+
+/* Responsive table styles */
+@media (max-width: 768px) {
+    #inventoryTable {
+        font-size: 0.875rem;
+    }
+
+    #inventoryTable th,
+    #inventoryTable td {
+        padding: 8px 4px;
+    }
+
+    .status-badge {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+    }
+}
+</style>
+<script>
+// Delete confirmation modal logic
+let deleteItemId = null;
+function confirmDeleteItem(itemId) {
+    deleteItemId = itemId;
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    deleteItemId = null;
+}
+document.getElementById('confirmDeleteBtn').onclick = function() {
+    if (deleteItemId) {
+        deleteItem(deleteItemId);
+        closeDeleteModal();
+    }
+};
+</script>
         </tr>
         {% endfor %}
     </tbody>
@@ -127,7 +465,6 @@
     <p>No items in inventory yet. Add your first item above!</p>
 </div>
 {% endif %}
-{% endblock %}
 
 {% block extra_scripts %}
 <script>
@@ -138,8 +475,14 @@ let currentEditItemId = null;
 function createEditModal() {
     const modal = document.createElement('div');
     modal.className = 'modal';
-    modal.innerHTML = '<div class="modal-content"><div class="modal-header"><h3>Edit Item</h3><button class="modal-close" onclick="closeEditModal()">&times;</button></div><div class="modal-body"><form id="editItemForm"><div class="form-group"><label for="editName">Item Name</label><input type="text" id="editName" required></div><div class="form-group"><label for="editBuyingPrice">Buying Price</label><input type="number" id="editBuyingPrice" step="0.01" min="0" required></div><div class="form-group"><label for="editSellingPrice">Selling Price</label><input type="number" id="editSellingPrice" step="0.01" min="0" required></div><div class="form-group"><label for="editQuantity">Quantity</label><input type="number" id="editQuantity" min="0" required></div></form></div><div class="modal-footer"><button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button><button type="button" class="btn-primary" onclick="saveEditItem()">Save Changes</button></div></div>';
+    modal.innerHTML = '<div class="modal-content"><div class="modal-header"><h3>Edit Item</h3><button class="modal-close" onclick="closeEditModal()">&times;</button></div><div class="modal-body"><form id="editItemForm"><div class="form-group"><label for="editName">Item Name</label><input type="text" id="editName" required></div><div class="form-group"><label for="editCategory">Category</label><select id="editCategory"><option value="">Select Category</option></select></div><div class="form-group"><label for="editBuyingPrice">Buying Price</label><input type="number" id="editBuyingPrice" step="0.01" min="0" required></div><div class="form-group"><label for="editSellingPrice">Selling Price</label><input type="number" id="editSellingPrice" step="0.01" min="0" required></div><div class="form-group"><label for="editQuantity">Quantity</label><input type="number" id="editQuantity" min="0" required></div><div class="form-group"><label for="editExpiryDate">Expiry Date</label><input type="date" id="editExpiryDate"></div></form></div><div class="modal-footer"><button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button><button type="button" class="btn-primary" onclick="saveEditItem()">Save Changes</button></div></div>';
     document.body.appendChild(modal);
+
+    // Populate categories dropdown
+    const categorySelect = modal.querySelector('#editCategory');
+    const categoryOptions = document.querySelector('#category_id').innerHTML;
+    categorySelect.innerHTML = categoryOptions;
+
     return modal;
 }
 
@@ -149,10 +492,12 @@ function editItem(itemId) {
     const cells = row.querySelectorAll('td');
 
     const itemData = {
-        name: cells[0].textContent.trim(),
-        buyingPrice: cells[1].textContent.replace(/,/g, ''),
-        sellingPrice: cells[2].textContent.replace(/,/g, ''),
-        quantity: cells[3].textContent.trim()
+        name: cells[1].textContent.trim(),
+        category: cells[2].textContent.trim(),
+        buyingPrice: cells[3].textContent.replace(/,/g, ''),
+        sellingPrice: cells[4].textContent.replace(/,/g, ''),
+        quantity: cells[5].textContent.trim(),
+        expiry: cells[7].textContent.trim()
     };
 
     // Create and show modal
@@ -165,6 +510,26 @@ function editItem(itemId) {
     document.getElementById('editBuyingPrice').value = itemData.buyingPrice;
     document.getElementById('editSellingPrice').value = itemData.sellingPrice;
     document.getElementById('editQuantity').value = itemData.quantity;
+
+    // Set category
+    const categorySelect = document.getElementById('editCategory');
+    if (itemData.category !== 'No Category') {
+        // Find the option with matching text
+        for (let option of categorySelect.options) {
+            if (option.textContent === itemData.category) {
+                option.selected = true;
+                break;
+            }
+        }
+    }
+
+    // Set expiry date
+    const expiryInput = document.getElementById('editExpiryDate');
+    if (itemData.expiry !== 'No Expiry') {
+        expiryInput.value = itemData.expiry;
+    } else {
+        expiryInput.value = '';
+    }
 
     currentEditItemId = itemId;
     editModal.style.display = 'flex';
@@ -179,11 +544,16 @@ function closeEditModal() {
 function saveEditItem() {
     if (!currentEditItemId) return;
 
+    const categorySelect = document.getElementById('editCategory');
+    const expiryInput = document.getElementById('editExpiryDate');
+
     const formData = {
         name: document.getElementById('editName').value.trim(),
+        category_id: categorySelect.value || null,
         buying_price: parseFloat(document.getElementById('editBuyingPrice').value),
         selling_price: parseFloat(document.getElementById('editSellingPrice').value),
-        quantity: parseInt(document.getElementById('editQuantity').value)
+        quantity: parseInt(document.getElementById('editQuantity').value),
+        expiry_date: expiryInput.value || null
     };
 
     // Validate data
@@ -288,5 +658,93 @@ document.addEventListener('click', function(event) {
         closeEditModal();
     }
 });
+
+// Bulk barcode printing functionality
+function selectAllItems(checked) {
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = checked;
+    });
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+    const printBtn = document.getElementById('printSelectedBtn');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+
+    const selectedCount = selectedCheckboxes.length;
+    const totalCheckboxes = document.querySelectorAll('.item-checkbox').length;
+
+    // Show/hide print button
+    if (selectedCount > 0) {
+        printBtn.style.display = 'inline-block';
+        printBtn.textContent = `🖨️ Print ${selectedCount} Barcode${selectedCount > 1 ? 's' : ''}`;
+    } else {
+        printBtn.style.display = 'none';
+    }
+
+    // Update select all checkbox state
+    if (selectedCount === 0) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = false;
+    } else if (selectedCount === totalCheckboxes) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = true;
+    } else {
+        selectAllCheckbox.indeterminate = true;
+        selectAllCheckbox.checked = false;
+    }
+}
+
+function toggleSelectAll() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const isAllSelected = selectAllCheckbox.checked;
+    selectAllItems(!isAllSelected);
+}
+
+function printSelectedBarcodes() {
+    const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+    const selectedIds = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.value));
+
+    if (selectedIds.length === 0) {
+        alert('Please select at least one item to print barcodes.');
+        return;
+    }
+
+    // Send POST request to print_barcodes endpoint
+    fetch('/print_barcodes', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ item_ids: selectedIds })
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.text();
+        } else {
+            throw new Error('Failed to generate barcode labels');
+        }
+    })
+    .then(html => {
+        // Open the barcode print page in a new window
+        const printWindow = window.open('', '_blank', 'width=1200,height=800');
+        printWindow.document.write(html);
+        printWindow.document.close();
+    })
+    .catch(error => {
+        console.error('Error printing barcodes:', error);
+        alert('Error generating barcode labels. Please try again.');
+    });
+}
+
+// Initialize selected count on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateSelectedCount();
+});
 </script>
+{% endblock %}
+
 {% endblock %}

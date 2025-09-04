@@ -4,65 +4,3521 @@
 
 {% block extra_head %}
 <script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+/* Sales Page Enhanced Design */
+.page-header {
+    margin-bottom: 20px;
+    text-align: center;
+    padding: 15px 0;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.page-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.page-header h2 {
+    color: #1f2937;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.page-subtitle {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin: 0;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.page-header-separator {
+    color: #d1d5db;
+    font-size: 1.2rem;
+    font-weight: 300;
+}
+
+/* Adjust cart section for better layout */
+.cart-section {
+    margin-bottom: 20px;
+}
+
+.cart-section h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+}
+
+/* Make scanner options responsive */
+.scanner-options {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.scanner-options button {
+    padding: 10px 20px;
+    font-size: 14px;
+}
+
+/* Adjust cart table for better fit */
+.cart-table th,
+.cart-table td {
+    padding: 12px;
+    font-size: 14px;
+}
+
+/* Make summary section more compact */
+.cart-summary {
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.summary-row {
+    margin-bottom: 8px;
+    padding: 6px 0;
+}
+
+.summary-row.total-row {
+    padding-top: 12px;
+    margin-top: 12px;
+}
+
+/* Adjust action buttons */
+.cart-actions {
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.cart-actions button {
+    padding: 12px 24px;
+    font-size: 14px;
+}
+
+/* Smart Search & Scanner Section */
+.search-scanner-section {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 30px;
+    margin-bottom: 30px;
+    align-items: start;
+}
+
+.smart-search-container {
+    position: relative;
+    max-width: 600px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #6b7280;
+    z-index: 2;
+}
+
+.smart-search-input {
+    width: 100%;
+    padding: 16px 20px 16px 50px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    background: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    outline: none;
+}
+
+.smart-search-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+.smart-search-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.search-results-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    margin-top: 4px;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover,
+.search-result-item.highlighted {
+    background: #f8fafc;
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.search-result-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.search-result-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.search-result-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 16px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-result-details {
+    font-size: 14px;
+    color: #6b7280;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.search-result-price {
+    color: #059669;
+    font-weight: 600;
+}
+
+.search-result-category {
+    color: #7c3aed;
+    font-weight: 500;
+}
+
+.search-result-barcode {
+    font-family: 'Courier New', monospace;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.no-results {
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+}
+
+.no-results::before {
+    content: "🔍";
+    font-size: 24px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* Enhanced Sales Page Components */
+.scanner-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.scanner-options button {
+    padding: 16px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.scanner-options button.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.scanner-options button.primary:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6c5b7b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.scanner-options button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* Scanner and Manual Entry Containers */
+#scannerContainer, #manualEntry {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
+}
+
+#manualEntry input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+#manualEntry input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+#manualEntry button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #6b7280;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+#manualEntry button:hover {
+    background: #4b5563;
+    transform: translateY(-1px);
+}
+
+/* Cart Section Enhancement */
+.cart-section {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid #f3f4f6;
+    margin-bottom: 30px;
+}
+
+.cart-section h3 {
+    color: #1f2937;
+    margin-bottom: 25px;
+    font-size: 24px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cart-section h3::before {
+    content: "🛒";
+    font-size: 28px;
+}
+
+/* Enhanced Empty Cart State */
+.empty-cart {
+    text-align: center;
+    color: #6b7280;
+    font-size: 18px;
+    padding: 60px 20px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 2px dashed #d1d5db;
+}
+
+.empty-cart::before {
+    content: "📦";
+    font-size: 48px;
+    display: block;
+    margin-bottom: 15px;
+    opacity: 0.6;
+}
+
+/* Enhanced Cart Table */
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.cart-table th {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    color: #374151;
+    padding: 18px 20px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.cart-table td {
+    padding: 18px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+    transition: background-color 0.2s ease;
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.cart-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* Quantity Controls Enhancement */
+.qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 4px;
+    width: fit-content;
+}
+
+.qty-controls button {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #d1d5db;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    color: #374151;
+}
+
+.qty-controls button:hover {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+    transform: scale(1.05);
+}
+
+.qty-controls span {
+    min-width: 40px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 16px;
+    color: #1f2937;
+}
+
+/* Remove Button Enhancement */
+.cart-table button.danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.cart-table button.danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Enhanced Cart Summary */
+.cart-summary {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 25px;
+    border: 1px solid #e5e7eb;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 10px 0;
+    font-size: 16px;
+}
+
+.summary-row:last-child {
+    margin-bottom: 0;
+}
+
+.summary-row label {
+    font-weight: 600;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.summary-row label::before {
+    content: "💰";
+    font-size: 16px;
+}
+
+.summary-row input {
+    padding: 8px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100px;
+    text-align: right;
+    transition: all 0.2s ease;
+}
+
+.summary-row input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.summary-row.total-row {
+    border-top: 2px solid #d1d5db;
+    padding-top: 20px;
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1f2937;
+}
+
+.summary-row.total-row::before {
+    content: "🧾";
+    font-size: 20px;
+    margin-right: 8px;
+}
+
+/* Payment Section Enhancement */
+.payment-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #e5e7eb;
+}
+
+.change-row, .insufficient-cash {
+    font-weight: 600;
+    padding: 8px 0;
+}
+
+.change-row {
+    color: #059669;
+}
+
+.insufficient-cash {
+    color: #dc2626;
+}
+
+/* Enhanced Action Buttons */
+.cart-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.cart-actions button {
+    padding: 16px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cart-actions button.success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.cart-actions button.success:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.cart-actions button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.cart-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Quick Add Buttons Section */
+.quick-add-section {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    border: 1px solid #f3f4f6;
+    margin-bottom: 30px;
+}
+
+.quick-add-section h3 {
+    color: #1f2937;
+    margin-bottom: 25px;
+    font-size: 24px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quick-add-section h3::before {
+    content: "🚀";
+    font-size: 28px;
+}
+
+.quick-add-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.quick-add-button {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #1f2937;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.quick-add-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.quick-add-button:hover::before {
+    left: 100%;
+}
+
+.quick-add-button:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+.quick-add-button:active {
+    transform: translateY(0);
+}
+
+.quick-add-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.quick-add-name {
+    font-weight: 700;
+    font-size: 16px;
+    text-align: center;
+    color: #1f2937;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.quick-add-price {
+    font-size: 14px;
+    color: #059669;
+    font-weight: 600;
+    background: #ecfdf5;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #d1fae5;
+}
+
+.quick-add-category {
+    font-size: 12px;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+}
+
+.loading-buttons {
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+    padding: 40px;
+    grid-column: 1 / -1;
+}
+
+.loading-buttons::before {
+    content: "⏳";
+    font-size: 24px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Redesigned Sales Layout - Cart covers half the page */
+.sales-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.right-panel {
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+}
+
+/* Search Section */
+.search-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
+}
+
+/* Simple Search Input Styles */
+.simple-search-wrapper {
+    margin-bottom: 20px;
+}
+
+.search-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 4px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.search-input-container:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+.simple-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 16px;
+    color: #1f2937;
+    min-width: 0;
+}
+
+.simple-search-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.search-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 8px;
+}
+
+.search-button:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6c5b7b 100%);
+    transform: scale(1.05);
+}
+
+.search-icon {
+    font-size: 20px;
+    color: white;
+}
+
+.clear-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clear-button:hover {
+    background: #f3f4f6;
+    transform: scale(1.05);
+}
+
+.clear-icon {
+    font-size: 16px;
+    color: #6b7280;
+}
+
+.clear-button:hover .clear-icon {
+    color: #374151;
+}
+
+/* Search Status */
+.search-status {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.status-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+/* Search Results Area */
+.search-results-area {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.results-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.results-count {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.results-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Result Items */
+.result-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f3f4f6;
+    position: relative;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-item:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.result-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.result-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.result-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 16px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+
+.result-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.result-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: #059669;
+    background: #ecfdf5;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #d1fae5;
+}
+
+.result-barcode {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    border: 1px solid #e5e7eb;
+}
+
+.result-category {
+    font-size: 12px;
+    font-weight: 500;
+    color: #7c3aed;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+}
+
+.result-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.result-add-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.result-add-btn span {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+}
+
+/* No Results Message */
+.no-results-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 12px;
+    color: #6b7280;
+}
+
+.no-results-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+    opacity: 0.6;
+}
+
+.no-results-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+    text-align: center;
+}
+
+.no-results-subtext {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+    text-align: center;
+}
+
+/* Loading State */
+.search-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 16px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e5e7eb;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+/* Error State */
+.search-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 16px;
+}
+
+.error-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.error-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #dc2626;
+    margin: 0;
+    text-align: center;
+}
+
+.error-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+    text-align: center;
+}
+
+.retry-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.retry-button:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6c5b7b 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.retry-icon {
+    font-size: 16px;
+}
+
+.retry-text {
+    font-weight: 600;
+}
+
+/* Highlighted text */
+mark {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+/* Responsive Search */
+@media (max-width: 768px) {
+    .search-input-container {
+        padding: 8px;
+    }
+
+    .simple-search-input {
+        font-size: 16px;
+        padding: 10px 12px;
+    }
+
+    .search-button {
+        width: 40px;
+        height: 40px;
+        margin-right: 6px;
+    }
+
+    .search-icon {
+        font-size: 18px;
+    }
+
+    .clear-button {
+        width: 32px;
+        height: 32px;
+    }
+
+    .clear-icon {
+        font-size: 14px;
+    }
+
+    .result-item {
+        padding: 12px 16px;
+        gap: 12px;
+    }
+
+    .result-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .result-name {
+        font-size: 15px;
+    }
+
+    .result-details {
+        gap: 8px;
+    }
+
+    .result-price,
+    .result-barcode,
+    .result-category {
+        font-size: 12px;
+        padding: 3px 6px;
+    }
+
+    .result-add-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .result-add-btn span {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-section {
+        padding: 20px;
+    }
+
+    .search-input-container {
+        border-radius: 10px;
+    }
+
+    .simple-search-input {
+        font-size: 15px;
+        padding: 8px 10px;
+    }
+
+    .search-button {
+        width: 36px;
+        height: 36px;
+        margin-right: 4px;
+    }
+
+    .search-icon {
+        font-size: 16px;
+    }
+
+    .clear-button {
+        width: 28px;
+        height: 28px;
+    }
+
+    .clear-icon {
+        font-size: 12px;
+    }
+
+    .results-header {
+        padding: 12px 16px;
+    }
+
+    .results-header h4 {
+        font-size: 15px;
+    }
+
+    .results-count {
+        font-size: 13px;
+    }
+
+    .result-item {
+        padding: 10px 12px;
+    }
+
+    .result-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .result-name {
+        font-size: 14px;
+    }
+
+    .result-price,
+    .result-barcode,
+    .result-category {
+        font-size: 11px;
+        padding: 2px 5px;
+    }
+
+    .result-add-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .result-add-btn span {
+        font-size: 14px;
+    }
+
+    .no-results-message,
+    .search-loading-state,
+    .search-error-state {
+        padding: 32px 16px;
+    }
+
+    .no-results-icon,
+    .error-icon {
+        font-size: 40px;
+    }
+
+    .no-results-text,
+    .error-title {
+        font-size: 16px;
+    }
+
+    .no-results-subtext,
+    .error-subtitle {
+        font-size: 13px;
+    }
+
+    .loading-text {
+        font-size: 15px;
+    }
+}
+
+/* Enhanced Search Header */
+.search-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.search-header h3 {
+    color: #1f2937;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.search-header p {
+    color: #6b7280;
+    font-size: 14px;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Search Container */
+.search-container {
+    position: relative;
+}
+
+/* Search Input Group */
+.search-input-group {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+/* Search Input Wrapper */
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 4px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.search-input-wrapper:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Search Icon Container */
+.search-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.search-icon {
+    font-size: 20px;
+    color: white;
+}
+
+/* Search Input */
+.search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 0;
+    color: #1f2937;
+    min-width: 0;
+}
+
+.search-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.search-input:focus::placeholder {
+    color: #d1d5db;
+}
+
+/* Search Actions */
+.search-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 12px;
+}
+
+.clear-search-btn,
+.voice-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.clear-search-btn:hover {
+    background: #f3f4f6;
+    transform: scale(1.05);
+}
+
+.voice-search-btn:hover {
+    background: #f3f4f6;
+    transform: scale(1.05);
+}
+
+.clear-icon,
+.voice-icon {
+    font-size: 16px;
+    color: #6b7280;
+}
+
+.clear-search-btn:hover .clear-icon,
+.voice-search-btn:hover .voice-icon {
+    color: #374151;
+}
+
+/* Search Suggestions */
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    z-index: 1000;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.suggestion-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.suggestion-icon {
+    font-size: 16px;
+}
+
+.suggestion-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+}
+
+.suggestion-list {
+    padding: 8px 0;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.suggestion-item:hover {
+    background: #f8fafc;
+    transform: translateX(2px);
+}
+
+.suggestion-item .suggestion-icon {
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+}
+
+.suggestion-item .suggestion-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    flex: 1;
+}
+
+/* Search Results Dropdown */
+.search-results-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    z-index: 1000;
+    margin-top: 8px;
+    overflow: hidden;
+    max-height: 400px;
+    display: none;
+}
+
+/* Search Loading State */
+.search-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    gap: 12px;
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e5e7eb;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+/* Search Empty State */
+.search-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    gap: 8px;
+}
+
+.empty-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.empty-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+}
+
+.empty-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+    text-align: center;
+}
+
+/* Search Error State */
+.search-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    gap: 12px;
+}
+
+.error-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.error-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #dc2626;
+    margin: 0;
+}
+
+.error-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+    text-align: center;
+}
+
+.retry-search-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.retry-search-btn:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6c5b7b 100%);
+    transform: translateY(-1px);
+}
+
+.retry-icon {
+    font-size: 16px;
+}
+
+.retry-text {
+    font-weight: 600;
+}
+
+/* Search Results List */
+.search-results-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+/* Enhanced Search Result Items */
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f3f4f6;
+    position: relative;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover,
+.search-result-item.highlighted {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.search-result-item.highlighted::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 0 2px 2px 0;
+}
+
+.search-result-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.search-result-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.search-result-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 16px;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
+
+.search-result-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.search-result-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: #059669;
+    background: #ecfdf5;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #d1fae5;
+}
+
+.search-result-barcode {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    border: 1px solid #e5e7eb;
+}
+
+/* Search Stats */
+.search-stats {
+    text-align: center;
+    padding: 12px 0;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 16px;
+}
+
+.stats-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+/* Enhanced No Results */
+.no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    gap: 8px;
+    color: #6b7280;
+}
+
+.no-results::before {
+    content: "🔍";
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+/* Responsive Search */
+@media (max-width: 768px) {
+    .search-input-wrapper {
+        padding: 8px;
+    }
+
+    .search-icon-container {
+        width: 40px;
+        height: 40px;
+        margin-right: 8px;
+    }
+
+    .search-icon {
+        font-size: 18px;
+    }
+
+    .search-input {
+        font-size: 16px;
+        padding: 10px 0;
+    }
+
+    .search-actions {
+        gap: 4px;
+        margin-left: 8px;
+    }
+
+    .clear-search-btn,
+    .voice-search-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .clear-icon,
+    .voice-icon {
+        font-size: 14px;
+    }
+
+    .search-result-item {
+        padding: 12px 16px;
+        gap: 10px;
+    }
+
+    .search-result-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .search-result-name {
+        font-size: 15px;
+    }
+
+    .search-result-details {
+        gap: 8px;
+    }
+
+    .search-result-price,
+    .search-result-barcode {
+        font-size: 12px;
+        padding: 3px 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-section {
+        padding: 20px;
+    }
+
+    .search-header h3 {
+        font-size: 18px;
+    }
+
+    .search-header p {
+        font-size: 13px;
+    }
+
+    .search-input-wrapper {
+        border-radius: 12px;
+    }
+
+    .search-icon-container {
+        width: 36px;
+        height: 36px;
+        margin-right: 6px;
+    }
+
+    .search-icon {
+        font-size: 16px;
+    }
+
+    .search-input {
+        font-size: 15px;
+        padding: 8px 0;
+    }
+
+    .search-actions {
+        margin-left: 6px;
+    }
+
+    .clear-search-btn,
+    .voice-search-btn {
+        width: 28px;
+        height: 28px;
+    }
+
+    .clear-icon,
+    .voice-icon {
+        font-size: 12px;
+    }
+
+    .search-result-item {
+        padding: 10px 12px;
+    }
+
+    .search-result-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .search-result-name {
+        font-size: 14px;
+    }
+
+    .search-result-price,
+    .search-result-barcode {
+        font-size: 11px;
+        padding: 2px 5px;
+    }
+}
+
+/* Integrated Scanning Interface */
+.scanning-interface {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.scanning-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.scanning-header h4 {
+    margin: 0 0 8px 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.scanning-header p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.scanning-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.scan-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.scan-btn.camera-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.scan-btn.camera-btn:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6c5b7b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.scan-btn.manual-btn {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+}
+
+.scan-btn.manual-btn:hover {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(107, 114, 128, 0.3);
+}
+
+.btn-icon {
+    font-size: 18px;
+}
+
+.btn-text {
+    font-weight: 700;
+}
+
+/* Scanner Container */
+.scanner-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.scanner-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.scanner-reader {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.scanner-controls {
+    display: flex;
+    justify-content: center;
+}
+
+.scan-cancel-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.scan-cancel-btn:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+/* Manual Entry Container */
+.manual-entry-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.manual-entry-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.manual-input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background: white;
+    outline: none;
+}
+
+.manual-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+.manual-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.manual-add-btn,
+.manual-cancel-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.manual-add-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.manual-add-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+}
+
+.manual-cancel-btn {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+}
+
+.manual-cancel-btn:hover {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(107, 114, 128, 0.3);
+}
+
+/* Cart Items Section */
+.cart-items-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+}
+
+/* Cart Header with Badge */
+.cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.cart-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.cart-badge {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Enhanced Empty Cart State */
+.empty-cart {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    border: 2px dashed #d1d5db;
+}
+
+.empty-cart-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.6;
+}
+
+.empty-cart-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.empty-cart-subtext {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+/* Cart Summary Section */
+.summary-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row.discount-row {
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 20px;
+    margin-bottom: 10px;
+}
+
+.summary-row.total-row {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 8px;
+    padding: 16px;
+    border: 2px solid #0ea5e9;
+    margin-top: 10px;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+}
+
+.summary-value {
+    font-weight: 700;
+    color: #1f2937;
+    font-size: 16px;
+}
+
+.discount-value {
+    color: #dc2626;
+}
+
+.total-label,
+.total-value {
+    font-size: 18px;
+    color: #0ea5e9;
+}
+
+/* Payment Section */
+.payment-section {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+}
+
+.payment-input-group {
+    margin-bottom: 15px;
+}
+
+.payment-label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.payment-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: right;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.payment-input:focus {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    outline: none;
+}
+
+.discount-input {
+    width: 80px;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+    margin-left: 8px;
+}
+
+/* Change Display */
+.change-display {
+    margin-top: 15px;
+}
+
+.change-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    background: #ecfdf5;
+    border-radius: 8px;
+    border: 1px solid #d1fae5;
+    margin-bottom: 8px;
+}
+
+.change-label {
+    font-weight: 600;
+    color: #059669;
+    font-size: 14px;
+}
+
+.change-value {
+    font-weight: 700;
+    color: #059669;
+    font-size: 16px;
+}
+
+.insufficient-cash {
+    background: #fef2f2;
+    color: #dc2626;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+    font-weight: 600;
+    text-align: center;
+    font-size: 14px;
+}
+
+/* Enhanced Action Buttons */
+.cart-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.action-btn.success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.action-btn.success:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.action-btn.secondary {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+}
+
+.action-btn.secondary:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(107, 114, 128, 0.3);
+}
+
+.action-btn.info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.action-btn.info:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-icon {
+    font-size: 16px;
+}
+
+.btn-text {
+    font-weight: 700;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .sales-layout {
+        grid-template-columns: 1fr 350px;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sales-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .right-panel {
+        position: static;
+        order: -1;
+    }
+
+    .scanner-options {
+        grid-template-columns: 1fr;
+    }
+
+    .cart-actions {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .cart-table {
+        font-size: 14px;
+    }
+
+    .cart-table th,
+    .cart-table td {
+        padding: 12px 8px;
+    }
+
+    .summary-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .summary-row input {
+        width: 100%;
+        max-width: 150px;
+    }
+
+    .quick-add-buttons {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+    }
+
+    .quick-add-button {
+        padding: 16px 12px;
+    }
+
+    .quick-add-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+
+    .quick-add-name {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sales-layout {
+        padding: 0 10px;
+    }
+
+    .quick-add-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .quick-add-section {
+        padding: 20px;
+    }
+
+    .quick-add-section h3 {
+        font-size: 20px;
+    }
+
+    .cart-section {
+        padding: 20px;
+    }
+
+    .cart-header h3 {
+        font-size: 18px;
+    }
+
+    .cart-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .action-btn {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<section id="sales" class="active">
-    <h2>Sales</h2>
 
-<!-- Scanning Options -->
-<div class="scanner-options">
-    <button class="primary" onclick="startScanner()">📷 Scan via Camera</button>
-    <button onclick="manualBarcodeEntry()">⌨️ Enter Barcode Manually</button>
-</div>
 
-<!-- Scanner Container -->
-<div id="scannerContainer" style="display:none;">
-    <div id="reader" style="width:320px; max-width:100%;"></div>
-    <button class="danger" onclick="stopScanner()">❌ Cancel Scan</button>
-</div>
+<!-- Redesigned Sales Layout -->
+<div class="sales-layout">
+    <!-- [2] LEFT PANEL -->
+    <div class="left-panel">
 
-<!-- Manual Entry -->
-<div id="manualEntry" style="display:none;">
-    <input type="text" id="manualBarcode" placeholder="Enter barcode or item name" />
-    <button class="primary" onclick="processManualBarcode()">Add to Cart</button>
-    <button onclick="closeManualEntry()">Close</button>
-</div>
 
-<!-- Cart Section -->
-<div class="cart-section">
-    <h3>Shopping Cart</h3>
-    <div id="cartItems">
-        <div class="empty-cart">Cart is empty. Add items using scanner or manual entry.</div>
+
     </div>
 
-    <!-- Cart Summary -->
-    <div class="cart-summary" id="cartSummary" style="display:none;">
-        <div class="summary-row">
-            <span>Subtotal:</span>
-            <span id="subtotal">0 AFA</span>
-        </div>
-        <div class="discount-row">
-            <label>Discount (%): <input type="number" id="discountPercent" min="0" max="100" step="0.1" value="0" onchange="calculateTotal()" /></label>
-            <span id="discountAmount">0 AFA</span>
-        </div>
-        <div class="summary-row total-row">
-            <span><strong>Total:</strong></span>
-            <span id="totalAmount"><strong>0 AFA</strong></span>
-        </div>
-    </div>
+    <!-- [5] RIGHT PANEL -->
+    <div class="right-panel">
+        <!-- [6] CART SECTION -->
+        <div class="cart-section">
+            <!-- [7] CART HEADER -->
+            <div class="cart-header">
+                <h3>🛒 Shopping Cart</h3>
+                <div class="cart-badge" id="cartBadge">0</div>
+            </div>
 
-    <!-- Action Buttons -->
-    <div class="cart-actions">
-        <button class="success" onclick="completeSale()" id="completeBtn" disabled>✅ Complete Sale</button>
-        <button onclick="clearCart()" id="clearBtn" disabled>🗑️ Clear Cart</button>
-        <button onclick="printReceipt()" id="printBtn" disabled>🖨️ Print Receipt</button>
+            <!-- [8] INTEGRATED SCANNING INTERFACE -->
+            <div class="scanning-interface">
+                <!-- [9] SCANNING HEADER -->
+                <div class="scanning-header">
+                    <h4>📱 Add Items to Cart</h4>
+                    <p>Scan barcode or enter manually</p>
+                </div>
+
+                <!-- [10] SCANNING OPTIONS -->
+                <div class="scanning-options">
+                    <button class="scan-btn camera-btn" onclick="startScanner()">
+                        <span class="btn-icon">📷</span>
+                        <span class="btn-text">Scan Camera</span>
+                    </button>
+                    <button class="scan-btn manual-btn" onclick="manualBarcodeEntry()">
+                        <span class="btn-icon">⌨️</span>
+                        <span class="btn-text">Enter Manual</span>
+                    </button>
+                </div>
+
+                <!-- Scanner Container -->
+                <div id="scannerContainer" class="scanner-container" style="display:none;">
+                    <div class="scanner-wrapper">
+                        <div id="reader" class="scanner-reader"></div>
+                        <div class="scanner-controls">
+                            <button class="scan-cancel-btn" onclick="stopScanner()">
+                                <span class="btn-icon">❌</span>
+                                <span class="btn-text">Cancel Scan</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Entry -->
+                <div id="manualEntry" class="manual-entry-container" style="display:none;">
+                    <div class="manual-entry-wrapper">
+                        <input type="text"
+                               id="manualBarcode"
+                               placeholder="Enter barcode or item name"
+                               class="manual-input"
+                               autocomplete="off" />
+                        <div class="manual-controls">
+                            <button class="manual-add-btn" onclick="processManualBarcode()">
+                                <span class="btn-icon">➕</span>
+                                <span class="btn-text">Add to Cart</span>
+                            </button>
+                            <button class="manual-cancel-btn" onclick="closeManualEntry()">
+                                <span class="btn-icon">✕</span>
+                                <span class="btn-text">Cancel</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- [11] CART ITEMS DISPLAY -->
+            <div class="cart-items-section">
+                <div id="cartItems">
+                    <div class="empty-cart">
+                        <div class="empty-cart-icon">🛒</div>
+                        <div class="empty-cart-text">Your cart is empty</div>
+                        <div class="empty-cart-subtext">Use the scanning options above to add items</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- [12] CART SUMMARY -->
+            <div class="cart-summary" id="cartSummary" style="display:none;">
+                <div class="summary-section">
+                    <div class="summary-row">
+                        <span class="summary-label">Subtotal:</span>
+                        <span id="subtotal" class="summary-value">0 AFA</span>
+                    </div>
+                    <div class="summary-row discount-row">
+                        <label class="summary-label">
+                            Discount (%):
+                            <input type="number" id="discountPercent" min="0" max="100" step="0.1" value="0" onchange="calculateTotal()" class="discount-input" />
+                        </label>
+                        <span id="discountAmount" class="summary-value discount-value">0 AFA</span>
+                    </div>
+                    <div class="summary-row total-row">
+                        <span class="summary-label total-label"><strong>Total:</strong></span>
+                        <span id="totalAmount" class="summary-value total-value"><strong>0 AFA</strong></span>
+                    </div>
+                </div>
+
+                <!-- [13] PAYMENT SECTION -->
+                <div class="payment-section">
+                    <div class="payment-input-group">
+                        <label class="payment-label">💰 Cash Received:</label>
+                        <input type="number" id="cashReceived" min="0" step="0.01" placeholder="0.00" onchange="calculateChange()" class="payment-input" />
+                    </div>
+
+                    <div class="change-display">
+                        <div class="change-row" id="changeRow" style="display: none;">
+                            <span class="change-label">💸 Change:</span>
+                            <span id="changeAmount" class="change-value">0 AFA</span>
+                        </div>
+                        <div class="insufficient-cash" id="insufficientCash" style="display: none;">
+                            ⚠️ Insufficient cash amount!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- [14] ACTION BUTTONS -->
+            <div class="cart-actions">
+                <button class="action-btn success" onclick="completeSale()" id="completeBtn" disabled>
+                    <span class="btn-icon">✅</span>
+                    <span class="btn-text">Complete Sale</span>
+                </button>
+                <button class="action-btn secondary" onclick="clearCart()" id="clearBtn" disabled>
+                    <span class="btn-icon">🗑️</span>
+                    <span class="btn-text">Clear Cart</span>
+                </button>
+                <button class="action-btn info" onclick="printReceipt()" id="printBtn" disabled>
+                    <span class="btn-icon">🖨️</span>
+                    <span class="btn-text">Print Receipt</span>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
-</section>
-{% endblock %}
 
-{% block extra_scripts %}
+<!-- Change Password Modal -->
+<div id="changePasswordModal" class="modal-overlay" role="dialog" aria-labelledby="changePasswordTitle" aria-modal="true">
+    <div class="modal-container">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <span class="material-icons" aria-hidden="true">lock</span>
+                </div>
+                <h2 id="changePasswordTitle" class="modal-title">Change Password</h2>
+                <button class="modal-close" onclick="closeChangePasswordModal()" aria-label="Close change password modal">
+                    <span class="material-icons" aria-hidden="true">close</span>
+                </button>
+            </div>
+
+            <form method="POST" action="{{ url_for('change_password') }}" class="modal-form" novalidate>
+                <div class="modal-body">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="current_password" class="form-label">
+                                <span class="material-icons" aria-hidden="true">security</span>
+                                Current Password
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="password"
+                                       id="current_password"
+                                       name="current_password"
+                                       class="form-input"
+                                       placeholder="Enter your current password"
+                                       required
+                                       aria-describedby="current-password-help">
+                                <button type="button" class="input-toggle" onclick="togglePassword('current_password')" aria-label="Toggle password visibility">
+                                    <span class="material-icons" aria-hidden="true">visibility</span>
+                                </button>
+                            </div>
+                            <small id="current-password-help" class="form-help">Enter your current password to proceed</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="new_password" class="form-label">
+                                <span class="material-icons" aria-hidden="true">vpn_key</span>
+                                New Password
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="password"
+                                       id="new_password"
+                                       name="new_password"
+                                       class="form-input"
+                                       placeholder="Enter a new password"
+                                       required
+                                       minlength="6"
+                                       aria-describedby="new-password-help">
+                                <button type="button" class="input-toggle" onclick="togglePassword('new_password')" aria-label="Toggle password visibility">
+                                    <span class="material-icons" aria-hidden="true">visibility</span>
+                                </button>
+                            </div>
+                            <small id="new-password-help" class="form-help">Must be at least 6 characters long</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirm_password" class="form-label">
+                                <span class="material-icons" aria-hidden="true">check_circle</span>
+                                Confirm New Password
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="password"
+                                       id="confirm_password"
+                                       name="confirm_password"
+                                       class="form-input"
+                                       placeholder="Confirm your new password"
+                                       required
+                                       aria-describedby="confirm-password-help">
+                                <button type="button" class="input-toggle" onclick="togglePassword('confirm_password')" aria-label="Toggle password visibility">
+                                    <span class="material-icons" aria-hidden="true">visibility</span>
+                                </button>
+                            </div>
+                            <small id="confirm-password-help" class="form-help">Re-enter your new password</small>
+                        </div>
+                    </div>
+
+                    <div class="password-strength" id="passwordStrength" aria-live="polite">
+                        <div class="strength-meter">
+                            <div class="strength-bar" id="strengthBar"></div>
+                        </div>
+                        <small class="strength-text" id="strengthText">Password strength: Weak</small>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeChangePasswordModal()">
+                        <span class="material-icons" aria-hidden="true">cancel</span>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-primary" id="changePasswordBtn">
+                        <span class="material-icons" aria-hidden="true">save</span>
+                        <span class="btn-text">Update Password</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Secret Question Modal -->
+<div id="secretQuestionModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Security Question</h3>
+            <button class="modal-close" onclick="closeSecretQuestionModal()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('profile') }}">
+            <input type="hidden" name="action" value="set_secret_question">
+            <div class="modal-body">
+                <p class="help-text">Set up a secret question to help you recover your password if forgotten.</p>
+
+                {% if current_user.is_authenticated and current_user.secret_question %}
+                <div class="current-secret">
+                    <p><strong>Current Question:</strong> {{ current_user.secret_question }}</p>
+                    <p class="text-muted">You can update your security question below.</p>
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="secret_question_modal">Secret Question</label>
+                    <select id="secret_question_modal" name="secret_question" required>
+                        <option value="">Choose a question...</option>
+                        <option value="What was the name of your first pet?">What was the name of your first pet?</option>
+                        <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                        <option value="What was the name of your first school?">What was the name of your first school?</option>
+                        <option value="What is your favorite childhood memory?">What is your favorite childhood memory?</option>
+                        <option value="What was your first car?">What was your first car?</option>
+                        <option value="What is the name of your favorite teacher?">What is the name of your favorite teacher?</option>
+                        <option value="What city were you born in?">What city were you born in?</option>
+                        <option value="What is your favorite book?">What is your favorite book?</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="secret_answer_modal">Answer</label>
+                    <input type="text" id="secret_answer_modal" name="secret_answer" required placeholder="Your answer">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeSecretQuestionModal()">Cancel</button>
+                <button type="submit" class="btn-success">
+                    {% if current_user.is_authenticated and current_user.secret_question %}Update{% else %}Set{% endif %} Question
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="modal">
+    <div class="modal-content large-modal">
+        <div class="modal-header">
+            <h3>User Profile</h3>
+            <button class="modal-close" onclick="closeProfileModal()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="profile-modal-content">
+                <!-- User Info -->
+                <div class="profile-info-section">
+                    <div class="profile-avatar-large">
+                        <span class="avatar-text-xl">{{ current_user.username[0].upper() if current_user.is_authenticated else 'U' }}</span>
+                    </div>
+                    <h3>{{ current_user.username if current_user.is_authenticated else 'User' }}</h3>
+                    <p class="role-badge-large">{{ current_user.role.title() if current_user.is_authenticated else 'Guest' }}</p>
+                    <p class="join-date-large">Member since {{ current_user.created_at.strftime('%B %Y') if current_user.is_authenticated else 'N/A' }}</p>
+                </div>
+
+                <!-- Account Statistics -->
+                <div class="profile-stats-section">
+                    <h4>Account Statistics</h4>
+                    <div class="stats-grid-modal">
+                        <div class="stat-item-modal">
+                            <span class="stat-label-modal">Total Sales Made</span>
+                            <span class="stat-value-modal">{{ current_user.sales|length if current_user.is_authenticated else 0 }}</span>
+                        </div>
+                        <div class="stat-item-modal">
+                            <span class="stat-label-modal">Account Type</span>
+                            <span class="stat-value-modal">{{ current_user.role.title() if current_user.is_authenticated else 'Guest' }}</span>
+                        </div>
+                        <div class="stat-item-modal">
+                            <span class="stat-label-modal">Last Login</span>
+                            <span class="stat-value-modal">Today</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Minimal Header Styles */
+.minimal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo-section .logo-text {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+}
+
+.user-profile-section {
+    position: relative;
+}
+
+.user-profile-trigger {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.user-profile-trigger:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar-sidebar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.user-details-sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.user-name-sidebar {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.user-role-sidebar {
+    font-size: 12px;
+    opacity: 0.8;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    margin-left: 8px;
+    transition: transform 0.2s ease;
+}
+
+.user-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    min-width: 280px;
+    display: none;
+    z-index: 1000;
+    margin-top: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.user-menu-header {
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.user-menu-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+}
+
+.user-menu-info {
+    text-align: center;
+}
+
+.user-menu-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 4px 0;
+}
+
+.user-menu-role {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0 0 4px 0;
+}
+
+.user-menu-email {
+    font-size: 12px;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.user-menu-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 0;
+}
+
+.user-menu-section {
+    padding: 16px 20px;
+}
+
+.user-menu-section h4 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 12px 0;
+}
+
+.user-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: #374151;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.user-menu-item:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+}
+
+.user-menu-item.logout-item {
+    color: #dc2626;
+}
+
+.user-menu-item.logout-item:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.user-menu-item .material-icons {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+/* Enhanced Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-container {
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 30px 20px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.modal-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+}
+
+.modal-icon .material-icons {
+    font-size: 24px;
+    color: white;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    flex: 1;
+}
+
+.modal-close {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.modal-close:hover {
+    background: #f3f4f6;
+    color: #374151;
+    transform: scale(1.05);
+}
+
+.modal-body {
+    padding: 30px;
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.form-label .material-icons {
+    font-size: 18px;
+    color: #6b7280;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    padding-right: 48px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    background: white;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.form-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-input:invalid:not(:placeholder-shown) {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-toggle:hover {
+    color: #374151;
+    background: #f3f4f6;
+}
+
+.form-help {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.password-strength {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.strength-meter {
+    width: 100%;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.strength-bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
+}
+
+.strength-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.modal-footer {
+    padding: 24px 30px;
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: white;
+    border: 2px solid #d1d5db;
+    border-radius: 10px;
+    color: #374151;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5855eb 0%, #7c3aed 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-primary.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn-text {
+    font-weight: 600;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Focus States for Accessibility */
+.form-input:focus,
+.input-toggle:focus,
+.modal-close:focus,
+.btn-primary:focus,
+.btn-secondary:focus {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+    .modal-container {
+        width: 95%;
+        margin: 20px;
+    }
+
+    .modal-header {
+        padding: 20px;
+        gap: 12px;
+    }
+
+    .modal-body {
+        padding: 24px 20px;
+    }
+
+    .modal-footer {
+        padding: 20px;
+        flex-direction: column;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .modal-title {
+        font-size: 1.125rem;
+    }
+
+    .form-section {
+        gap: 20px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .modal-card {
+        background: #1f2937;
+        color: #f9fafb;
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+        border-bottom-color: #4b5563;
+    }
+
+    .modal-title {
+        color: #f9fafb;
+    }
+
+    .form-input {
+        background: #374151;
+        border-color: #4b5563;
+        color: #f9fafb;
+    }
+
+    .form-input:focus {
+        border-color: #6366f1;
+    }
+
+    .form-label {
+        color: #e5e7eb;
+    }
+
+    .form-help {
+        color: #9ca3af;
+    }
+
+    .password-strength {
+        background: #374151;
+        border-color: #4b5563;
+    }
+
+    .modal-footer {
+        background: #374151;
+        border-top-color: #4b5563;
+    }
+
+    .btn-secondary {
+        background: #374151;
+        border-color: #4b5563;
+        color: #e5e7eb;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        border-color: #6b7280;
+    }
+}
+
+
+</style>
+
 <script>
 let cart = [];
 let scanner = null;
@@ -185,9 +3641,23 @@ function renderCart() {
     const completeBtn = document.getElementById('completeBtn');
     const clearBtn = document.getElementById('clearBtn');
     const printBtn = document.getElementById('printBtn');
+    const cartBadge = document.getElementById('cartBadge');
+
+    // Update cart badge
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    if (cartBadge) {
+        cartBadge.textContent = totalItems;
+        cartBadge.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
 
     if (cart.length === 0) {
-        cartItemsDiv.innerHTML = '<div class="empty-cart">Cart is empty. Add items using scanner or manual entry.</div>';
+        cartItemsDiv.innerHTML = `
+            <div class="empty-cart">
+                <div class="empty-cart-icon">🛒</div>
+                <div class="empty-cart-text">Your cart is empty</div>
+                <div class="empty-cart-subtext">Add items using search or quick buttons</div>
+            </div>
+        `;
         cartSummary.style.display = 'none';
         completeBtn.disabled = true;
         clearBtn.disabled = true;
@@ -277,12 +3747,49 @@ function calculateTotal() {
     document.getElementById('subtotal').textContent = formatNumber(subtotal) + ' AFA';
     document.getElementById('discountAmount').textContent = formatNumber(discountAmount) + ' AFA';
     document.getElementById('totalAmount').textContent = formatNumber(total) + ' AFA';
+
+    // Recalculate change if cash received is entered
+    calculateChange();
+}
+
+function calculateChange() {
+    const total = parseFloat(document.getElementById('totalAmount').textContent.replace(/[^\d.-]/g, '')) || 0;
+    const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
+    const changeRow = document.getElementById('changeRow');
+    const changeAmount = document.getElementById('changeAmount');
+    const insufficientCash = document.getElementById('insufficientCash');
+
+    if (cashReceived > 0) {
+        if (cashReceived >= total) {
+            const change = cashReceived - total;
+            changeAmount.textContent = formatNumber(change) + ' AFA';
+            changeRow.style.display = 'flex';
+            insufficientCash.style.display = 'none';
+        } else {
+            changeRow.style.display = 'none';
+            insufficientCash.style.display = 'block';
+        }
+    } else {
+        changeRow.style.display = 'none';
+        insufficientCash.style.display = 'none';
+    }
 }
 
 function completeSale() {
     if (cart.length === 0) return alert('Cart is empty');
 
     const discountPercent = parseFloat(document.getElementById('discountPercent').value) || 0;
+    const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
+    const total = parseFloat(document.getElementById('totalAmount').textContent.replace(/[^\d.-]/g, '')) || 0;
+
+    // Validate payment
+    if (cashReceived < total) {
+        alert('Cash received is less than total amount!');
+        document.getElementById('cashReceived').focus();
+        return;
+    }
+
+    const change = cashReceived - total;
 
     fetch('/api/complete_sale', {
         method: 'POST',
@@ -291,18 +3798,29 @@ function completeSale() {
         },
         body: JSON.stringify({
             items: cart,
-            discount_percent: discountPercent
+            discount_percent: discountPercent,
+            cash_received: cashReceived,
+            change_amount: change
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
+            // Show change amount in alert
+            let message = data.message + '\n\nReceipt Number: ' + data.receipt_number;
+            if (change > 0) {
+                message += '\n\nChange to return: ' + formatNumber(change) + ' AFA';
+            }
+
+            alert(message);
+
+            // Open receipt in new window
+            const receiptWindow = window.open('/print_receipt/' + data.sale_id, '_blank', 'width=600,height=800');
+
+            // Clear cart after successful sale
             cart = [];
             saveCart();
             renderCart();
-            // Optionally redirect to receipt or dashboard
-            window.location.href = '/dashboard';
         } else {
             alert('Error: ' + data.error);
         }
@@ -314,25 +3832,268 @@ function completeSale() {
 }
 
 function printReceipt() {
-    // This would typically open a receipt window
-    alert('Receipt printing functionality would be implemented here');
+    // For demonstration, show receipt lookup
+    const receiptNumber = prompt('Enter Receipt Number to lookup:');
+    if (receiptNumber && receiptNumber.trim()) {
+        window.open('/receipt/' + receiptNumber.trim(), '_blank', 'width=600,height=800');
+    }
 }
 
 function formatNumber(n) {
     return Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
-// Initialize cart on page load
-document.addEventListener('DOMContentLoaded', function() {
-    loadCart();
+// User Menu Functions
+function toggleUserMenu() {
+    const menu = document.getElementById('userMenu');
+    const arrow = document.querySelector('.dropdown-arrow');
 
-    // Manual barcode enter on Enter key
-    document.getElementById('manualBarcode').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            processManualBarcode();
+    if (menu && menu.style.display === 'block') {
+        menu.style.display = 'none';
+        if (arrow) arrow.textContent = '▼';
+    } else if (menu) {
+        menu.style.display = 'block';
+        if (arrow) arrow.textContent = '▲';
+    }
+}
+
+// Close user menu when clicking outside
+document.addEventListener('click', function(event) {
+    const menu = document.getElementById('userMenu');
+    const trigger = document.querySelector('.user-profile-trigger');
+
+    if (menu && trigger && !trigger.contains(event.target) && !menu.contains(event.target)) {
+        menu.style.display = 'none';
+        const arrow = document.querySelector('.dropdown-arrow');
+        if (arrow) arrow.textContent = '▼';
+    }
+});
+
+// Modal Functions
+function openChangePasswordModal() {
+    const modal = document.getElementById('changePasswordModal');
+    const menu = document.getElementById('userMenu');
+    const arrow = document.querySelector('.dropdown-arrow');
+
+    if (modal) modal.style.display = 'flex';
+    if (menu) menu.style.display = 'none';
+    if (arrow) arrow.textContent = '▼';
+}
+
+function closeChangePasswordModal() {
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function openSecretQuestionModal() {
+    const modal = document.getElementById('secretQuestionModal');
+    const menu = document.getElementById('userMenu');
+    const arrow = document.querySelector('.dropdown-arrow');
+
+    if (modal) modal.style.display = 'flex';
+    if (menu) menu.style.display = 'none';
+    if (arrow) arrow.textContent = '▼';
+}
+
+function closeSecretQuestionModal() {
+    const modal = document.getElementById('secretQuestionModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function openProfileModal() {
+    const modal = document.getElementById('profileModal');
+    const menu = document.getElementById('userMenu');
+    const arrow = document.querySelector('.dropdown-arrow');
+
+    if (modal) modal.style.display = 'flex';
+    if (menu) menu.style.display = 'none';
+    if (arrow) arrow.textContent = '▼';
+}
+
+function closeProfileModal() {
+    const modal = document.getElementById('profileModal');
+    if (modal) modal.style.display = 'none';
+}
+
+// Close modals when clicking outside
+document.addEventListener('click', function(event) {
+    const modals = ['changePasswordModal', 'secretQuestionModal', 'profileModal'];
+    modals.forEach(function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal && event.target === modal) {
+            modal.style.display = 'none';
         }
     });
+});
+
+// Enhanced Password Modal Functions
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const toggleBtn = input ? input.nextElementSibling : null;
+
+    if (input && toggleBtn) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            const icon = toggleBtn.querySelector('.material-icons');
+            if (icon) icon.textContent = 'visibility_off';
+            toggleBtn.setAttribute('aria-label', 'Hide password');
+        } else {
+            input.type = 'password';
+            const icon = toggleBtn.querySelector('.material-icons');
+            if (icon) icon.textContent = 'visibility';
+            toggleBtn.setAttribute('aria-label', 'Show password');
+        }
+    }
+}
+
+function checkPasswordStrength(password) {
+    let strength = 0;
+    let feedback = [];
+
+    // Length check
+    if (password.length >= 8) strength += 1;
+    else feedback.push('At least 8 characters');
+
+    // Lowercase check
+    if (/[a-z]/.test(password)) strength += 1;
+    else feedback.push('Lowercase letter');
+
+    // Uppercase check
+    if (/[A-Z]/.test(password)) strength += 1;
+    else feedback.push('Uppercase letter');
+
+    // Number check
+    if (/\d/.test(password)) strength += 1;
+    else feedback.push('Number');
+
+    // Special character check
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    else feedback.push('Special character');
+
+    return { strength: strength, feedback: feedback };
+}
+
+function updatePasswordStrength() {
+    const password = document.getElementById('new_password');
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthText = document.getElementById('strengthText');
+
+    if (!password || !strengthBar || !strengthText) return;
+
+    const pwd = password.value;
+
+    if (!pwd) {
+        strengthBar.style.width = '0%';
+        strengthText.textContent = 'Password strength: Weak';
+        return;
+    }
+
+    const result = checkPasswordStrength(pwd);
+    const percentage = (result.strength / 5) * 100;
+
+    strengthBar.style.width = percentage + '%';
+
+    let strengthLabel = 'Weak';
+    let color = '#ef4444'; // red
+
+    if (result.strength >= 4) {
+        strengthLabel = 'Strong';
+        color = '#10b981'; // green
+    } else if (result.strength >= 3) {
+        strengthLabel = 'Medium';
+        color = '#f59e0b'; // amber
+    }
+
+    strengthBar.style.background = 'linear-gradient(90deg, ' + color + ' 0%, ' + color + ' 100%)';
+    strengthText.textContent = 'Password strength: ' + strengthLabel;
+}
+
+// Enhanced form validation and submission
+document.addEventListener('DOMContentLoaded', function() {
+    // Password confirmation validation
+    const newPassword = document.getElementById('new_password');
+    const confirmPassword = document.getElementById('confirm_password');
+
+    if (newPassword && confirmPassword) {
+        function validatePasswords() {
+            if (newPassword.value !== confirmPassword.value) {
+                confirmPassword.setCustomValidity('Passwords do not match');
+            } else {
+                confirmPassword.setCustomValidity('');
+            }
+        }
+
+        newPassword.addEventListener('input', validatePasswords);
+        confirmPassword.addEventListener('input', validatePasswords);
+    }
+
+    // Password strength monitoring
+    if (newPassword) {
+        newPassword.addEventListener('input', updatePasswordStrength);
+    }
+
+    // Enhanced form submission with loading state
+    const changePasswordForm = document.querySelector('#changePasswordModal form');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('changePasswordBtn');
+            if (submitBtn) {
+                submitBtn.classList.add('loading');
+                submitBtn.innerHTML = '<span class="material-icons" aria-hidden="true">hourglass_empty</span><span class="btn-text">Updating...</span>';
+            }
+        });
+    }
+
+    // Keyboard navigation enhancements
+    document.addEventListener('keydown', function(e) {
+        // Close modal on Escape
+        if (e.key === 'Escape') {
+            const openModal = document.querySelector('.modal-overlay[style*="display: flex"]');
+            if (openModal) {
+                const modalId = openModal.id;
+                if (modalId === 'changePasswordModal') closeChangePasswordModal();
+                else if (modalId === 'secretQuestionModal') closeSecretQuestionModal();
+                else if (modalId === 'profileModal') closeProfileModal();
+            }
+        }
+    });
+
+    // Enhanced focus management
+    const modalOverlays = document.querySelectorAll('.modal-overlay');
+    modalOverlays.forEach(function(overlay) {
+        overlay.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                const focusableElements = overlay.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (e.shiftKey) {
+                    if (document.activeElement === firstElement) {
+                        lastElement.focus();
+                        e.preventDefault();
+                    }
+                } else {
+                    if (document.activeElement === lastElement) {
+                        firstElement.focus();
+                        e.preventDefault();
+                    }
+                }
+            }
+        });
+    });
+
+// Initialize cart on page load
+loadCart();
+
+// Manual barcode enter on Enter key
+document.getElementById('manualBarcode').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        processManualBarcode();
+    }
+});
 });
 </script>
 {% endblock %}

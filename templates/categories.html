@@ -1,0 +1,615 @@
+{% extends "base.html" %}
+
+{% block title %}Categories - POS System{% endblock %}
+
+{% block content %}
+<section id="categories" class="active">
+<div class="categories-header">
+    <h2>📂 Category Management</h2>
+    <p>Organize your inventory items into categories</p>
+</div>
+
+<!-- Add Category Form -->
+<div class="add-category-form">
+    <h3>Add New Category</h3>
+    <form method="POST" class="category-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="name">Category Name *</label>
+                <input type="text" id="name" name="name" required placeholder="e.g., Beverages, Snacks, Electronics">
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <input type="text" id="description" name="description" placeholder="Optional description">
+            </div>
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button type="submit" class="primary">➕ Add Category</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Add Most Common Categories Button -->
+    <div class="common-categories-section">
+        <div class="common-categories-header">
+            <h4>🚀 Quick Setup</h4>
+            <p>Add most common categories with one click</p>
+        </div>
+        <button id="addCommonCategoriesBtn" class="add-common-categories-btn" onclick="addMostCommonCategories()">
+            <span class="btn-icon">📦</span>
+            <span class="btn-text">Add Most Common Categories</span>
+        </button>
+        <div id="commonCategoriesStatus" class="common-categories-status" style="display: none;"></div>
+    </div>
+</div>
+
+<!-- Categories Table -->
+<h3>Categories</h3>
+<div class="categories-table-container">
+    <table id="categoriesTable" class="modern-table">
+        <thead>
+            <tr>
+                <th>S/N</th>
+                <th>Category Name</th>
+                <th>Description</th>
+                <th>Items Count</th>
+                <th>Created At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ category.name }}</td>
+                <td>{{ category.description or 'No description' }}</td>
+                <td>{{ category.items|length }}</td>
+                <td>{{ category.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <button onclick="editCategory('{{ category.id }}')" class="warning" data-name="{{ category.name }}" data-description="{{ category.description or "" }}">✏️ Edit</button>
+                    <button onclick="deleteCategory('{{ category.id }}')" class="danger" data-name="{{ category.name }}">🗑️ Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not categories %}
+<div class="empty-state">
+    <p>No categories found. Add your first category above!</p>
+</div>
+{% endif %}
+
+<!-- Edit Category Modal -->
+<div id="editCategoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Category</h3>
+            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editCategoryForm">
+                <div class="form-group">
+                    <label for="editName">Category Name *</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editDescription">Description</label>
+                    <input type="text" id="editDescription">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+            <button type="button" class="btn-primary" onclick="saveCategoryEdit()">Save Changes</button>
+        </div>
+    </div>
+</div>
+</section>
+
+<style>
+/* Modern Table Styles */
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(44,62,80,0.07);
+    margin-bottom: 30px;
+}
+.modern-table th, .modern-table td {
+    padding: 12px 10px;
+    text-align: left;
+    color: #222;
+}
+.modern-table td {
+    font-weight: 500;
+}
+.modern-table thead th {
+    background: #f8f9fa;
+    font-weight: 700;
+    border-bottom: 2px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.modern-table tbody tr:nth-child(even) {
+    background: #f4f6fa;
+}
+.modern-table tbody tr:hover {
+    background: #eaf6fb;
+    transition: background 0.2s;
+}
+
+.categories-header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.categories-header h2 {
+    color: #1f2937;
+    margin-bottom: 10px;
+}
+
+.categories-header p {
+    color: #6b7280;
+}
+
+.add-category-form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.add-category-form h3 {
+    margin: 0 0 20px 0;
+    color: #1f2937;
+}
+
+.category-form {
+    margin: 0;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 2fr 3fr auto;
+    gap: 15px;
+    align-items: end;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.form-group input {
+    padding: 10px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #6366f1;
+}
+
+.primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s;
+}
+
+.primary:hover {
+    transform: translateY(-1px);
+}
+
+/* Common Categories Section */
+.common-categories-section {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 2px solid #e5e7eb;
+}
+
+.common-categories-header {
+    margin-bottom: 15px;
+}
+
+.common-categories-header h4 {
+    margin: 0 0 5px 0;
+    color: #1f2937;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.common-categories-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.add-common-categories-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    width: 100%;
+    justify-content: center;
+}
+
+.add-common-categories-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.add-common-categories-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.add-common-categories-btn .btn-icon {
+    font-size: 1.2rem;
+}
+
+.add-common-categories-btn .btn-text {
+    font-weight: 700;
+}
+
+.common-categories-status {
+    margin-top: 15px;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+.common-categories-status.success {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #d1fae5;
+}
+
+.common-categories-status.error {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.common-categories-status.info {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #dbeafe;
+}
+
+.categories-table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+#categoriesTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#categoriesTable th,
+#categoriesTable td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+#categoriesTable th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+}
+
+#categoriesTable tbody tr:hover {
+    background: #f9fafb;
+}
+
+.warning {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    margin-right: 5px;
+}
+
+.danger {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #1f2937;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 20px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .categories-table-container {
+        overflow-x: auto;
+    }
+
+    #categoriesTable {
+        min-width: 600px;
+    }
+}
+</style>
+
+<script>
+// Edit Category Modal
+let editModal = null;
+let currentEditCategoryId = null;
+
+function editCategory(categoryId) {
+    if (!editModal) {
+        editModal = document.getElementById('editCategoryModal');
+    }
+
+    // Get data from the button's data attributes
+    const button = event.target;
+    const name = button.getAttribute('data-name');
+    const description = button.getAttribute('data-description');
+
+    document.getElementById('editName').value = name;
+    document.getElementById('editDescription').value = description;
+    currentEditCategoryId = categoryId;
+
+    editModal.style.display = 'flex';
+}
+
+function closeEditModal() {
+    if (editModal) {
+        editModal.style.display = 'none';
+    }
+    currentEditCategoryId = null;
+}
+
+function saveCategoryEdit() {
+    if (!currentEditCategoryId) return;
+
+    const name = document.getElementById('editName').value.trim();
+    const description = document.getElementById('editDescription').value.trim();
+
+    if (!name) {
+        alert('Category name is required');
+        return;
+    }
+
+    fetch(`/api/categories/${currentEditCategoryId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: name,
+            description: description || null
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeEditModal();
+            location.reload();
+        } else {
+            alert('Error: ' + (data.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error updating category:', error);
+        alert('Error updating category');
+    });
+}
+
+function deleteCategory(categoryId) {
+    // Get data from the button's data attributes
+    const button = event.target;
+    const categoryName = button.getAttribute('data-name');
+
+    if (confirm(`Are you sure you want to delete the category "${categoryName}"? This action cannot be undone.`)) {
+        fetch(`/api/categories/${categoryId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting category:', error);
+            alert('Error deleting category');
+        });
+    }
+}
+
+// Add Most Common Categories Function
+function addMostCommonCategories() {
+    const button = document.getElementById('addCommonCategoriesBtn');
+    const statusDiv = document.getElementById('commonCategoriesStatus');
+
+    // Disable button and show loading state
+    button.disabled = true;
+    button.innerHTML = '<span class="btn-icon">⏳</span><span class="btn-text">Adding Categories...</span>';
+
+    // Hide any previous status
+    statusDiv.style.display = 'none';
+
+    fetch('/api/add_common_categories', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Re-enable button
+        button.disabled = false;
+        button.innerHTML = '<span class="btn-icon">📦</span><span class="btn-text">Add Most Common Categories</span>';
+
+        // Show status message
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'common-categories-status';
+
+        if (data.success) {
+            statusDiv.classList.add('success');
+            statusDiv.textContent = data.message;
+
+            // Reload page after 2 seconds to show new categories
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            statusDiv.classList.add('error');
+            statusDiv.textContent = data.error || 'Failed to add categories';
+        }
+    })
+    .catch(error => {
+        console.error('Error adding common categories:', error);
+
+        // Re-enable button
+        button.disabled = false;
+        button.innerHTML = '<span class="btn-icon">📦</span><span class="btn-text">Add Most Common Categories</span>';
+
+        // Show error status
+        statusDiv.style.display = 'block';
+        statusDiv.className = 'common-categories-status error';
+        statusDiv.textContent = 'Network error. Please try again.';
+    });
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    if (editModal && event.target === editModal) {
+        closeEditModal();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,715 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Logs - {{ branding.app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Activity Logs</h2>
+    <p class="page-subtitle">Monitor and track all system activities and user actions</p>
+</div>
+
+            <!-- Activity Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">{{ stats.total_activities }}</h3>
+                        <p class="stat-label">Total Activities ({{ stats.period_days }} days)</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">{{ stats.user_stats|length }}</h3>
+                        <p class="stat-label">Active Users</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">{{ stats.error_count }}</h3>
+                        <p class="stat-label">Error Events</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">{{ stats.action_stats.get('login', 0) }}</h3>
+                        <p class="stat-label">Login Events</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-section">
+                <form method="GET" class="filters-form">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="user_filter">User:</label>
+                            <select name="user" id="user_filter">
+                                <option value="">All Users</option>
+                                {% for username in users %}
+                                <option value="{{ username }}" {% if request.args.get('user') == username %}selected{% endif %}>{{ username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="action_filter">Action:</label>
+                            <select name="action" id="action_filter">
+                                <option value="">All Actions</option>
+                                {% for action in actions %}
+                                <option value="{{ action }}" {% if request.args.get('action') == action %}selected{% endif %}>{{ action.replace('_', ' ').title() }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="resource_filter">Resource Type:</label>
+                            <select name="resource_type" id="resource_filter">
+                                <option value="">All Resources</option>
+                                {% for resource_type in resource_types %}
+                                <option value="{{ resource_type }}" {% if request.args.get('resource_type') == resource_type %}selected{% endif %}>{{ resource_type.title() }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="status_filter">Status:</label>
+                            <select name="status" id="status_filter">
+                                <option value="">All Status</option>
+                                <option value="success" {% if request.args.get('status') == 'success' %}selected{% endif %}>Success</option>
+                                <option value="error" {% if request.args.get('status') == 'error' %}selected{% endif %}>Error</option>
+                                <option value="warning" {% if request.args.get('status') == 'warning' %}selected{% endif %}>Warning</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <button type="submit" class="btn-primary">Filter</button>
+                            <a href="{{ url_for('activity_logs') }}" class="btn-secondary">Clear</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Activity Logs Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Category</th>
+                            <th>Action</th>
+                            <th>Resource</th>
+                            <th>Details</th>
+                            <th>Status</th>
+                            <th>Client Info</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in activity_logs %}
+                        <tr class="{% if log.status == 'error' %}error-row{% elif log.status == 'warning' %}warning-row{% endif %}">
+                            <td>
+                                <div class="timestamp-cell">
+                                    <div class="timestamp-date">{{ log.created_at.strftime('%Y-%m-%d') }}</div>
+                                    <div class="timestamp-time">{{ log.created_at.strftime('%H:%M:%S') }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if log.user_id %}
+                                <div class="user-info">
+                                    <span class="user-badge">{{ log.username }}</span>
+                                    {% if log.user.role %}
+                                    <small class="user-role">{{ log.user.role.title() }}</small>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <span class="system-badge">System</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="category-badge category-{{ log.action_category }}">
+                                    {{ log.action_category.title() }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-cell">
+                                    <span class="action-badge action-{{ log.action }}">{{ log.action_description }}</span>
+                                    {% if log.severity != 'info' %}
+                                    <span class="severity-indicator severity-{{ log.severity }}">
+                                        {{ log.severity.upper() }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if log.resource_type %}
+                                <div class="resource-info">
+                                    <span class="resource-badge">{{ log.resource_type.title() }}</span>
+                                    {% if log.resource_name %}
+                                    <div class="resource-name">{{ log.resource_name[:35] }}{{ '...' if log.resource_name|length > 35 else '' }}</div>
+                                    {% endif %}
+                                    {% if log.resource_id %}
+                                    <small class="resource-id">ID: {{ log.resource_id }}</small>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if log.details %}
+                                <div class="details-cell">
+                                    <div class="details-text" title="{{ log.details }}">{{ log.details[:80] }}{{ '...' if log.details|length > 80 else '' }}</div>
+                                    {% if log.old_value or log.new_value %}
+                                    <div class="change-details">
+                                        {% if log.old_value %}
+                                        <small class="old-value">Before: {{ log.old_value[:30] }}{{ '...' if log.old_value|length > 30 else '' }}</small>
+                                        {% endif %}
+                                        {% if log.new_value %}
+                                        <small class="new-value">After: {{ log.new_value[:30] }}{{ '...' if log.new_value|length > 30 else '' }}</small>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="status-cell">
+                                    <span class="status-badge status-{{ log.status }}">
+                                        {% if log.status == 'success' %}✅ Success{% elif log.status == 'error' %}❌ Error{% elif log.status == 'warning' %}⚠️ Warning{% else %}{{ log.status.title() }}{% endif %}
+                                    </span>
+                                    {% if log.compliance_flag %}
+                                    <span class="compliance-badge" title="Compliance-related event">📋</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="client-info">
+                                    {% if log.ip_address %}
+                                    <div class="ip-address">
+                                        <small>IP: {{ log.ip_address }}</small>
+                                    </div>
+                                    {% endif %}
+                                    {% if log.terminal_id %}
+                                    <div class="terminal-id">
+                                        <small>Terminal: {{ log.terminal_id }}</small>
+                                    </div>
+                                    {% endif %}
+                                    {% if log.session_id %}
+                                    <div class="session-id">
+                                        <small>Session: {{ log.session_id }}</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% if not activity_logs %}
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h3>No Activity Logs Found</h3>
+                    <p>No activities match your current filters.</p>
+                    <a href="{{ url_for('activity_logs') }}" class="btn-primary">Clear Filters</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Pagination -->
+            {% if total_pages > 1 %}
+            <div class="pagination">
+                {% if current_page > 1 %}
+                <a href="{{ url_for('activity_logs', page=current_page-1, **request.args) }}" class="page-link">« Previous</a>
+                {% endif %}
+
+                {% for page_num in range(max(1, current_page-2), min(total_pages+1, current_page+3)) %}
+                <a href="{{ url_for('activity_logs', page=page_num, **request.args) }}"
+                   class="page-link {% if page_num == current_page %}active{% endif %}">{{ page_num }}</a>
+                {% endfor %}
+
+                {% if current_page < total_pages %}
+                <a href="{{ url_for('activity_logs', page=current_page+1, **request.args) }}" class="page-link">Next »</a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+<style>
+/* Activity Logs Styles - Full Screen Utilization */
+.page-header {
+    margin-bottom: 30px;
+}
+
+.page-header h2 {
+    margin: 0 0 8px 0;
+    color: #1f2937;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.page-header .page-subtitle {
+    margin: 0;
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.stat-content h3 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.stat-content p {
+    margin: 5px 0 0 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.filters-section {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.filter-row {
+    display: flex;
+    gap: 15px;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+}
+
+.filter-group label {
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.filter-group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+}
+
+.table-container {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+}
+
+.data-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Timestamp Cell */
+.timestamp-cell {
+    line-height: 1.3;
+}
+
+.timestamp-date {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.timestamp-time {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* User Info */
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-role {
+    color: #6c757d;
+    font-size: 11px;
+}
+
+/* Category Badges */
+.category-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.category-auth {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.category-sales {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+}
+
+.category-inventory {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.category-user_management {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.category-system {
+    background-color: #e0f2f1;
+    color: #00695c;
+}
+
+/* Action Cell */
+.action-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.severity-indicator {
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 8px;
+    font-weight: bold;
+    align-self: flex-start;
+}
+
+.severity-warning {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.severity-error {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.severity-critical {
+    background-color: #ffebee;
+    color: #b71c1c;
+}
+
+/* Resource Info */
+.resource-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.resource-name {
+    font-size: 13px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.resource-id {
+    color: #6c757d;
+    font-size: 11px;
+}
+
+/* Details Cell */
+.details-cell {
+    max-width: 250px;
+}
+
+.details-text {
+    margin-bottom: 3px;
+    line-height: 1.4;
+}
+
+.change-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid #eee;
+}
+
+.old-value {
+    color: #dc3545;
+    font-size: 11px;
+}
+
+.new-value {
+    color: #28a745;
+    font-size: 11px;
+}
+
+/* Status Cell */
+.status-cell {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-badge {
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.status-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.compliance-badge {
+    font-size: 14px;
+    cursor: help;
+}
+
+/* Client Info */
+.client-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+}
+
+.ip-address,
+.terminal-id,
+.session-id {
+    color: #6c757d;
+}
+
+/* Badge Styles */
+.user-badge {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.system-badge {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.action-badge {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.action-login_failed {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.action-user_create {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.action-item_create {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.action-sale_create {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+}
+
+.resource-badge {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.text-muted {
+    color: #6c757d;
+}
+
+.error-row {
+    background-color: #fff5f5;
+}
+
+.warning-row {
+    background-color: #fffbf0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+}
+
+.empty-state p {
+    margin: 0 0 20px 0;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 20px;
+}
+
+.page-link {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #007bff;
+    transition: background-color 0.3s;
+}
+
+.page-link:hover,
+.page-link.active {
+    background-color: #007bff;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-group {
+        min-width: auto;
+    }
+
+    .data-table {
+        font-size: 12px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 8px 10px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .client-info {
+        font-size: 10px;
+    }
+
+    .details-cell {
+        max-width: 150px;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,489 @@
+{% extends "base.html" %}
+
+{% block title %}{{ branding.app_name }} - Branding Management{% endblock %}
+
+{% block content %}
+<div class="branding-management">
+    <div class="page-header">
+        <h1>🎨 Branding Management</h1>
+        <p>Customize your POS system branding, colors, and business information</p>
+    </div>
+
+    <div class="branding-form-container">
+        <form method="POST" class="branding-form">
+            <div class="form-sections">
+
+                <!-- App Branding Section -->
+                <div class="form-section">
+                    <h3>📱 App Branding</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="app_name" class="form-label">App Name</label>
+                            <input type="text" id="app_name" name="app_name" class="form-input"
+                                   value="{{ branding.app_name }}" placeholder="POS System" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="app_subtitle" class="form-label">App Subtitle</label>
+                            <input type="text" id="app_subtitle" name="app_subtitle" class="form-input"
+                                   value="{{ branding.app_subtitle }}" placeholder="Professional Point of Sale">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Information Section -->
+                <div class="form-section">
+                    <h3>🏢 Business Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="business_name" class="form-label">Business Name</label>
+                            <input type="text" id="business_name" name="business_name" class="form-input"
+                                   value="{{ branding.business_name }}" placeholder="Your Business Name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="business_address" class="form-label">Business Address</label>
+                            <textarea id="business_address" name="business_address" class="form-textarea"
+                                      placeholder="123 Business Street, City, Country">{{ branding.business_address }}</textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="business_phone" class="form-label">Business Phone</label>
+                            <input type="tel" id="business_phone" name="business_phone" class="form-input"
+                                   value="{{ branding.business_phone }}" placeholder="+1 (555) 123-4567">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="business_email" class="form-label">Business Email</label>
+                            <input type="email" id="business_email" name="business_email" class="form-input"
+                                   value="{{ branding.business_email }}" placeholder="info@yourbusiness.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tax_id" class="form-label">Tax ID / VAT Number</label>
+                            <input type="text" id="tax_id" name="tax_id" class="form-input"
+                                   value="{{ branding.tax_id }}" placeholder="TAX123456789">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Colors Section -->
+                <div class="form-section">
+                    <h3>🎨 Theme Colors</h3>
+                    <div class="color-grid">
+                        <div class="color-group">
+                            <label for="primary_color" class="color-label">
+                                <span class="color-preview" id="primary_preview"></span>
+                                Primary Color
+                            </label>
+                            <input type="color" id="primary_color" name="primary_color" class="color-input"
+                                   value="{{ branding.primary_color }}">
+                        </div>
+
+                        <div class="color-group">
+                            <label for="secondary_color" class="color-label">
+                                <span class="color-preview" id="secondary_preview"></span>
+                                Secondary Color
+                            </label>
+                            <input type="color" id="secondary_color" name="secondary_color" class="color-input"
+                                   value="{{ branding.secondary_color }}">
+                        </div>
+
+                        <div class="color-group">
+                            <label for="accent_color" class="color-label">
+                                <span class="color-preview" id="accent_preview"></span>
+                                Accent Color
+                            </label>
+                            <input type="color" id="accent_color" name="accent_color" class="color-input"
+                                   value="{{ branding.accent_color }}">
+                        </div>
+
+                        <div class="color-group">
+                            <label for="background_color" class="color-label">
+                                <span class="color-preview" id="background_preview"></span>
+                                Background Color
+                            </label>
+                            <input type="color" id="background_color" name="background_color" class="color-input"
+                                   value="{{ branding.background_color }}">
+                        </div>
+
+                        <div class="color-group">
+                            <label for="text_color" class="color-label">
+                                <span class="color-preview" id="text_preview"></span>
+                                Text Color
+                            </label>
+                            <input type="color" id="text_color" name="text_color" class="color-input"
+                                   value="{{ branding.text_color }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typography Section -->
+                <div class="form-section">
+                    <h3>✍️ Typography</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="font_family" class="form-label">Font Family</label>
+                            <select id="font_family" name="font_family" class="form-select">
+                                <option value="Inter" {{ 'selected' if branding.font_family == 'Inter' else '' }}>Inter</option>
+                                <option value="Roboto" {{ 'selected' if branding.font_family == 'Roboto' else '' }}>Roboto</option>
+                                <option value="Open Sans" {{ 'selected' if branding.font_family == 'Open Sans' else '' }}>Open Sans</option>
+                                <option value="Lato" {{ 'selected' if branding.font_family == 'Lato' else '' }}>Lato</option>
+                                <option value="Poppins" {{ 'selected' if branding.font_family == 'Poppins' else '' }}>Poppins</option>
+                                <option value="Montserrat" {{ 'selected' if branding.font_family == 'Montserrat' else '' }}>Montserrat</option>
+                                <option value="Nunito" {{ 'selected' if branding.font_family == 'Nunito' else '' }}>Nunito</option>
+                                <option value="Arial" {{ 'selected' if branding.font_family == 'Arial' else '' }}>Arial</option>
+                                <option value="Helvetica" {{ 'selected' if branding.font_family == 'Helvetica' else '' }}>Helvetica</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assets Section -->
+                <div class="form-section">
+                    <h3>🖼️ Assets & Media</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="logo_url" class="form-label">Logo URL</label>
+                            <input type="url" id="logo_url" name="logo_url" class="form-input"
+                                   value="{{ branding.logo_url }}" placeholder="https://example.com/logo.png">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="favicon_url" class="form-label">Favicon URL</label>
+                            <input type="url" id="favicon_url" name="favicon_url" class="form-input"
+                                   value="{{ branding.favicon_url }}" placeholder="https://example.com/favicon.ico">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Text Section -->
+                <div class="form-section">
+                    <h3>📝 Footer Text</h3>
+                    <div class="form-group">
+                        <label for="footer_text" class="form-label">Receipt Footer Text</label>
+                        <textarea id="footer_text" name="footer_text" class="form-textarea"
+                                  placeholder="Thank you for your business!">{{ branding.footer_text }}</textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <span class="material-icons">save</span>
+                    Save Branding Settings
+                </button>
+                <button type="button" class="btn-secondary" onclick="resetToDefaults()">
+                    <span class="material-icons">restore</span>
+                    Reset to Defaults
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.branding-management {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.page-header h1 {
+    color: #1f2937;
+    margin-bottom: 10px;
+    font-size: 2rem;
+}
+
+.page-header p {
+    color: #6b7280;
+    font-size: 1.1rem;
+}
+
+.branding-form-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.branding-form {
+    padding: 30px;
+}
+
+.form-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.form-section {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 24px;
+    background: #f9fafb;
+}
+
+.form-section h3 {
+    margin: 0 0 20px 0;
+    color: #1f2937;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-select {
+    cursor: pointer;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.color-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.color-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.color-preview {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 2px solid #e5e7eb;
+    flex-shrink: 0;
+}
+
+.color-input {
+    width: 60px;
+    height: 40px;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    background: none;
+}
+
+.color-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-input::-webkit-color-swatch {
+    border: none;
+    border-radius: 4px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #e5e7eb;
+}
+
+.btn-primary,
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5855eb, #7c3aed);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary {
+    background: white;
+    color: #6b7280;
+    border: 2px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+@media (max-width: 768px) {
+    .branding-management {
+        padding: 10px;
+    }
+
+    .branding-form {
+        padding: 20px;
+    }
+
+    .form-sections {
+        gap: 30px;
+    }
+
+    .form-section {
+        padding: 20px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .color-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .color-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+}
+</style>
+
+<script>
+// Initialize color previews with current values
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial color previews
+    const colorMappings = {
+        'primary_color': '{{ branding.primary_color }}',
+        'secondary_color': '{{ branding.secondary_color }}',
+        'accent_color': '{{ branding.accent_color }}',
+        'background_color': '{{ branding.background_color }}',
+        'text_color': '{{ branding.text_color }}'
+    };
+
+    Object.keys(colorMappings).forEach(colorId => {
+        const input = document.getElementById(colorId);
+        const preview = document.getElementById(colorId.replace('_color', '_preview'));
+        const initialColor = colorMappings[colorId];
+
+        if (input && preview && initialColor) {
+            preview.style.backgroundColor = initialColor;
+
+            // Update preview when color changes
+            input.addEventListener('input', function() {
+                preview.style.backgroundColor = this.value;
+            });
+        }
+    });
+});
+
+function resetToDefaults() {
+    if (confirm('Are you sure you want to reset all branding settings to defaults? This action cannot be undone.')) {
+        // Reset form to default values
+        document.getElementById('app_name').value = 'POS System';
+        document.getElementById('app_subtitle').value = 'Professional Point of Sale';
+        document.getElementById('business_name').value = '';
+        document.getElementById('business_address').value = '';
+        document.getElementById('business_phone').value = '';
+        document.getElementById('business_email').value = '';
+        document.getElementById('tax_id').value = '';
+        document.getElementById('primary_color').value = '#6366f1';
+        document.getElementById('secondary_color').value = '#8b5cf6';
+        document.getElementById('accent_color').value = '#10b981';
+        document.getElementById('background_color').value = '#ffffff';
+        document.getElementById('text_color').value = '#1f2937';
+        document.getElementById('font_family').value = 'Inter';
+        document.getElementById('logo_url').value = '';
+        document.getElementById('favicon_url').value = '';
+        document.getElementById('footer_text').value = 'Thank you for your business!';
+
+        // Update color previews
+        document.getElementById('primary_preview').style.backgroundColor = '#6366f1';
+        document.getElementById('secondary_preview').style.backgroundColor = '#8b5cf6';
+        document.getElementById('accent_preview').style.backgroundColor = '#10b981';
+        document.getElementById('background_preview').style.backgroundColor = '#ffffff';
+        document.getElementById('text_preview').style.backgroundColor = '#1f2937';
+    }
+}
+</script>
+{% endblock %}

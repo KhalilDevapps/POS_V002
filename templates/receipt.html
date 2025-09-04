@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt - {{ sale.receipt_number }}</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .receipt-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 5px;
+        }
+        .print-button {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed #ccc;
+        }
+        .print-button button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .print-button button:hover {
+            opacity: 0.9;
+        }
+        .close-button {
+            background: #6c757d !important;
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .receipt-container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: none;
+            }
+            .print-button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="receipt-container">
+    <!-- Header -->
+    <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px;">
+        <h1 style="margin: 0; font-size: 18px; font-weight: bold;">{{ branding.business_name or 'POS SYSTEM' }}</h1>
+        <p style="margin: 5px 0; font-size: 10px;">{{ branding.app_subtitle or 'Professional Point of Sale' }}</p>
+        {% if branding.business_address %}
+        <p style="margin: 5px 0; font-size: 10px;">{{ branding.business_address }}</p>
+        {% endif %}
+        {% if branding.business_phone %}
+        <p style="margin: 5px 0; font-size: 10px;">Phone: {{ branding.business_phone }}</p>
+        {% endif %}
+        {% if branding.business_email %}
+        <p style="margin: 5px 0; font-size: 10px;">Email: {{ branding.business_email }}</p>
+        {% endif %}
+        {% if branding.tax_id %}
+        <p style="margin: 5px 0; font-size: 10px;">Tax ID: {{ branding.tax_id }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Receipt Info -->
+    <div style="margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span><strong>Receipt #:</strong></span>
+            <span>{{ sale.receipt_number }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span><strong>Date:</strong></span>
+            <span>{{ sale.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span><strong>Cashier:</strong></span>
+            <span>{{ sale.user.username }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span><strong>Payment Method:</strong></span>
+            <span>Cash (AFA)</span>
+        </div>
+        {% if cash_received %}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span><strong>Cash Received:</strong></span>
+            <span>{{ "{:,.0f}".format(cash_received) }} AFA</span>
+        </div>
+        {% endif %}
+        {% if change_amount and change_amount > 0 %}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span><strong>Change:</strong></span>
+            <span style="color: #28a745; font-weight: bold;">{{ "{:,.0f}".format(change_amount) }} AFA</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Items Header -->
+    <div style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 0; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+            <span style="width: 60%;">Item</span>
+            <span style="width: 15%; text-align: center;">Qty</span>
+            <span style="width: 25%; text-align: right;">Amount</span>
+        </div>
+    </div>
+
+    <!-- Items -->
+    <div style="margin-bottom: 15px;">
+        {% for item in sale.items %}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+            <span style="width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ item.item.name }}</span>
+            <span style="width: 15%; text-align: center;">{{ item.quantity }}</span>
+            <span style="width: 25%; text-align: right;">{{ "{:,.0f}".format(item.total_price) }} AFA</span>
+        </div>
+        {% if item.unit_price != item.item.selling_price %}
+        <div style="font-size: 10px; color: #666; margin-left: 10px;">
+            @ {{ "{:,.0f}".format(item.unit_price) }} AFA each
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Totals -->
+    <div style="border-top: 1px solid #000; padding-top: 10px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span><strong>Subtotal:</strong></span>
+            <span>{{ "{:,.0f}".format(sale.total_amount) }} AFA</span>
+        </div>
+
+        {% if sale.discount_amount > 0 %}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span><strong>Discount ({{ sale.discount_percent }}%):</strong></span>
+            <span>-{{ "{:,.0f}".format(sale.discount_amount) }} AFA</span>
+        </div>
+        {% endif %}
+
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; border-top: 1px solid #000; padding-top: 5px; font-size: 14px; font-weight: bold;">
+            <span><strong>TOTAL:</strong></span>
+            <span><strong>{{ "{:,.0f}".format(sale.final_amount) }} AFA</strong></span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px;">
+        <p style="margin: 5px 0; font-size: 10px;">{{ branding.footer_text or 'Thank you for your business!' }}</p>
+        <p style="margin: 5px 0; font-size: 10px;">Please keep this receipt for your records.</p>
+        <p style="margin: 5px 0; font-size: 10px;">For exchanges/returns, present this receipt within 30 days.</p>
+        <p style="margin: 10px 0; font-size: 8px;">Powered by {{ branding.app_name or 'POS System' }} v1.0</p>
+    </div>
+</div>
+
+    <!-- Action Buttons -->
+    <div class="print-button">
+        <button onclick="window.print()">🖨️ Print Receipt</button>
+        <button onclick="window.close()" class="close-button">Close</button>
+    </div>
+</body>
+</html>

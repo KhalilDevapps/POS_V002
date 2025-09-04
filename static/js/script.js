@@ -75,11 +75,77 @@ function closeSidebar() {
     overlay.classList.remove('show');
 }
 
-// Toggle user dropdown
+// Toggle user dropdown - Updated to match current template structure
 function toggleUserMenu() {
-    const dropdown = document.getElementById('userDropdown');
-    if (dropdown) {
-        dropdown.classList.toggle('show');
+    const menu = document.getElementById('userMenu');
+    const trigger = document.querySelector('.user-profile-trigger');
+    const arrow = document.getElementById('dropdownArrow');
+
+    if (!menu || !trigger) {
+        console.error('User menu elements not found');
+        return;
+    }
+
+    const isExpanded = menu.classList.contains('show');
+
+    if (isExpanded) {
+        closeUserMenu();
+    } else {
+        openUserMenu();
+    }
+}
+
+// Helper functions for user menu
+function openUserMenu() {
+    const menu = document.getElementById('userMenu');
+    const trigger = document.querySelector('.user-profile-trigger');
+    const arrow = document.getElementById('dropdownArrow');
+
+    if (menu && trigger) {
+        menu.classList.add('show');
+        menu.style.display = 'block';
+        trigger.setAttribute('aria-expanded', 'true');
+        menu.setAttribute('aria-hidden', 'false');
+        if (arrow) arrow.textContent = '▲';
+
+        // Add animation class
+        setTimeout(() => {
+            menu.classList.add('animate-in');
+        }, 10);
+    }
+}
+
+function closeUserMenu() {
+    const menu = document.getElementById('userMenu');
+    const trigger = document.querySelector('.user-profile-trigger');
+    const arrow = document.getElementById('dropdownArrow');
+
+    if (menu && trigger) {
+        menu.classList.remove('animate-in');
+        menu.classList.remove('show');
+        trigger.setAttribute('aria-expanded', 'false');
+        menu.setAttribute('aria-hidden', 'true');
+        if (arrow) arrow.textContent = '▼';
+
+        // Hide after animation
+        setTimeout(() => {
+            menu.style.display = 'none';
+        }, 200);
+    }
+}
+
+// Simple Logout Function
+function handleLogout() {
+    // Close the user menu first
+    closeUserMenu();
+
+    // Simple confirmation
+    if (confirm('Are you sure you want to logout?')) {
+        // Find the logout form and submit it
+        const logoutForm = document.querySelector('.logout-form');
+        if (logoutForm) {
+            logoutForm.submit();
+        }
     }
 }
 
@@ -91,9 +157,10 @@ function toggleNotifications() {
 
 // Modal functionality for change password
 function openChangePasswordModal() {
+    closeUserMenu();
     const modal = document.getElementById('changePasswordModal');
     if (modal) {
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
 }
@@ -106,19 +173,63 @@ function closeChangePasswordModal() {
     }
 }
 
+// Modal functionality for secret question
+function openSecretQuestionModal() {
+    closeUserMenu();
+    const modal = document.getElementById('secretQuestionModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeSecretQuestionModal() {
+    const modal = document.getElementById('secretQuestionModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Modal functionality for profile
+function openProfileModal() {
+    closeUserMenu();
+    const modal = document.getElementById('profileModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeProfileModal() {
+    const modal = document.getElementById('profileModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
 // Close dropdowns when clicking outside
 document.addEventListener('click', function(event) {
-    // Close user dropdown
-    const userDropdown = document.getElementById('userDropdown');
-    const userAvatarBtn = document.querySelector('.user-avatar-btn');
+    // Close user menu dropdown
+    const userMenu = document.getElementById('userMenu');
+    const userTrigger = document.querySelector('.user-profile-trigger');
 
-    if (userDropdown && userAvatarBtn && !userAvatarBtn.contains(event.target) && !userDropdown.contains(event.target)) {
-        userDropdown.classList.remove('show');
+    if (userMenu && userTrigger && !userTrigger.contains(event.target) && !userMenu.contains(event.target)) {
+        closeUserMenu();
     }
 
     // Close modal when clicking outside
     const modal = document.getElementById('changePasswordModal');
     if (modal && event.target === modal) {
+        closeChangePasswordModal();
+    }
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeUserMenu();
         closeChangePasswordModal();
     }
 });

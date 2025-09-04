@@ -45,13 +45,13 @@
                     {% endif %}
                 {% endwith %}
 
-                <form method="POST" class="login-form">
+                <form method="POST" class="login-form" id="loginForm">
                     {{ form.hidden_tag() }}
 
                     <div class="form-group">
                         <div class="input-wrapper">
                             <span class="material-icons input-icon">person</span>
-                            {{ form.username(class="form-input", placeholder="Username") }}
+                            {{ form.username(class="form-input", placeholder="Username", autocomplete="username") }}
                         </div>
                         {% if form.username.errors %}
                             <div class="error-message">
@@ -63,41 +63,66 @@
                     </div>
 
                     <div class="form-group">
-                        <div class="input-wrapper">
+                        <div class="input-wrapper" style="position:relative;">
                             <span class="material-icons input-icon">lock</span>
-                            {{ form.password(class="form-input", placeholder="Password") }}
+                            {{ form.password(class="form-input", placeholder="Password", autocomplete="current-password", id="loginPassword") }}
+                            <button type="button" id="togglePassword" tabindex="-1" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;outline:none;cursor:pointer;">
+                                <span class="material-icons" id="togglePasswordIcon">visibility_off</span>
+                            </button>
                         </div>
                         {% if form.password.errors %}
                             <div class="error-message">
                                 {% for error in form.password.errors %}
                                     {{ error }}
                                 {% endfor %}
+                            </div>
                         {% endif %}
                     </div>
 
-                    <button type="submit" class="btn-login">
-                        <span class="material-icons">login</span>
-                        Sign In
+                    <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;">
+                        <label style="display:flex;align-items:center;font-size:14px;cursor:pointer;">
+                            <input type="checkbox" name="remember" id="rememberMe" style="margin-right:8px;"> Remember Me
+                        </label>
+                        <a href="{{ url_for('forgot_password') }}" class="forgot-link" style="font-size:14px;">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn-login" id="loginBtn">
+                        <span class="material-icons" id="loginBtnIcon">login</span>
+                        <span id="loginBtnText">Sign In</span>
                     </button>
                 </form>
 
-                <div class="login-footer">
-                    <a href="{{ url_for('forgot_password') }}" class="forgot-link">Forgot password?</a>
-                </div>
+                <!-- Toast for feedback -->
+                <div id="loginToast" class="login-toast" style="display:none;"></div>
+            </div>
+
             </div>
         </div>
     </div>
 </div>
-
+<style>
 <style>
 /* Login Page Styles */
-.login-page {
-    min-height: 100vh;
-    display: flex;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    position: relative;
+.login-toast {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: #fff;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    z-index: 9999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    opacity: 0.97;
+    transition: opacity 0.3s;
 }
-
+.login-toast.error { background: #e74c3c; }
+.login-toast.success { background: #27ae60; }
+.login-toast.info { background: #3498db; }
+.login-toast.show { display: block; opacity: 1; }
+.login-toast.hide { opacity: 0; transition: opacity 0.3s; }
 .login-bg {
     position: absolute;
     top: 0;

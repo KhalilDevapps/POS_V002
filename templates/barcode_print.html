@@ -1,65 +1,123 @@
-{% extends "base.html" %}
-
-{% block title %}Print Barcode - {{ item.name }}{% endblock %}
-
-{% block content %}
-<div style="max-width: 800px; margin: 0 auto; padding: 20px;">
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #2c3e50; margin-bottom: 10px;">Barcode Label</h1>
-        <p style="color: #6c757d; font-size: 14px;">{{ item.name }}</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode - {{ item.name }}</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .barcode-container {
+            max-width: 300px;
+            margin: 0 auto;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            text-align: center;
+        }
+        .item-info {
+            margin-bottom: 10px;
+        }
+        .item-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+        }
+        .item-price {
+            font-size: 12px;
+            color: #6c757d;
+            margin: 0;
+        }
+        .barcode-display {
+            margin: 15px 0;
+        }
+        .barcode-number {
+            font-family: monospace;
+            font-size: 10px;
+            color: #6c757d;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+        .print-button {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed #ccc;
+        }
+        .print-button button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+        .print-button button:hover {
+            opacity: 0.9;
+        }
+        .close-button {
+            background: #6c757d !important;
+        }
+        .instructions {
+            text-align: center;
+            color: #6c757d;
+            font-size: 11px;
+            margin-top: 15px;
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .barcode-container {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: none;
+                padding: 10px;
+            }
+            .print-button {
+                display: none;
+            }
+            .instructions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="barcode-container">
+    <div class="item-info">
+        <h2 class="item-name">{{ item.name }}</h2>
+        <p class="item-price">Price: <strong>{{ "{:,.0f}".format(item.selling_price) }} AFA</strong></p>
     </div>
 
-    <div id="barcode-container" style="text-align: center; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px;">
-        <div style="margin-bottom: 20px;">
-            <h2 style="color: #2c3e50; margin: 0 0 10px 0; font-size: 24px;">{{ item.name }}</h2>
-            <p style="color: #6c757d; margin: 0; font-size: 16px;">Price: <strong>{{ "{:,.0f}".format(item.selling_price) }} AFA</strong></p>
-        </div>
-
-        <div style="margin: 30px 0;">
-            <svg id="barcode" style="max-width: 100%; height: auto;"></svg>
-        </div>
-
-        <div style="font-family: monospace; font-size: 12px; color: #6c757d; margin-top: 10px;">
-            {{ item.barcode }}
-        </div>
+    <div class="barcode-display">
+        <svg id="barcode" style="max-width: 100%; height: auto;"></svg>
     </div>
 
-    <div style="text-align: center; margin-bottom: 20px;">
-        <button onclick="window.print()" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer; margin-right: 10px;">
-            🖨️ Print Barcode
-        </button>
-        <button onclick="window.close()" style="background: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; cursor: pointer;">
-            Close
-        </button>
-    </div>
-
-    <div style="text-align: center; color: #6c757d; font-size: 12px;">
-        <p>Print this barcode and attach it to the product for easy scanning.</p>
+    <div class="barcode-number">
+        {{ item.barcode }}
     </div>
 </div>
 
-<style>
-@media print {
-    body * {
-        visibility: hidden;
-    }
-    #barcode-container, #barcode-container * {
-        visibility: visible;
-    }
-    #barcode-container {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        box-shadow: none;
-        border: none;
-        padding: 20px;
-    }
-    button {
-        display: none !important;
-    }
-}
-</style>
+<div class="print-button">
+    <button onclick="window.print()">🖨️ Print Barcode</button>
+    <button onclick="window.close()" class="close-button">Close</button>
+</div>
+
+<div class="instructions">
+    <p>Print this barcode and attach it to the product for easy scanning.</p>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 <script>
@@ -67,15 +125,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Generate barcode
     JsBarcode("#barcode", "{{ item.barcode }}", {
         format: "CODE128",
-        width: 2,
-        height: 60,
+        width: 1.5,
+        height: 40,
         displayValue: true,
-        fontSize: 14,
-        margin: 10,
+        fontSize: 10,
+        margin: 5,
         background: "#ffffff",
-        lineColor: "#000000",
-        text: "{{ item.barcode }} • {{ item.selling_price | round(0) | int }} AFA"
+        lineColor: "#000000"
     });
 });
 </script>
-{% endblock %}
+</body>
+</html>
