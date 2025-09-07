@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ branding.app_name }} - {{ branding.app_subtitle }}{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Database Backup - POS System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    {% block extra_head %}{% endblock %}
+    
 
     <style>
     /* CSS Custom Properties for Dynamic Branding */
     :root {
         /* Primary Branding Colors */
-        --primary-color: {{ branding.primary_color }};
-        --secondary-color: {{ branding.secondary_color }};
-        --accent-color: {{ branding.accent_color }};
-        --background-color: {{ branding.background_color }};
-        --text-color: {{ branding.text_color }};
+        --primary-color: #6366f1;
+        --secondary-color: #8b5cf6;
+        --accent-color: #10b981;
+        --background-color: #ffffff;
+        --text-color: #1f2937;
 
         /* Typography */
-        --font-family: {{ branding.font_family }}, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
         /* Derived Colors */
         --primary-hover: color-mix(in srgb, var(--primary-color) 90%, black);
@@ -867,7 +867,7 @@
     </style>
 </head>
 <body>
-    {% if current_user.is_authenticated %}
+    
     <div class="layout">
         <!-- Top Header Bar -->
         <header class="top-header">
@@ -876,8 +876,8 @@
                     <span class="material-icons">menu</span>
                 </button>
                 <div class="brand-info">
-                    <h1 class="brand-name">{{ branding.app_name }}</h1>
-                    <span class="brand-subtitle">{{ branding.app_subtitle }}</span>
+                    <h1 class="brand-name">POS System</h1>
+                    <span class="brand-subtitle">Professional Point of Sale</span>
                 </div>
             </div>
 
@@ -896,70 +896,69 @@
             </div>
 
             <nav class="sidebar-nav">
-                {% if current_user.has_permission('view_dashboard') %}
-                <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                
+                <a href="/dashboard" class="nav-link ">
                     <span class="material-icons">dashboard</span>
                     <span class="nav-text">Dashboard</span>
                 </a>
-                {% endif %}
+                
 
-                {% if current_user.has_permission('process_sales') %}
-                <a href="{{ url_for('sales') }}" class="nav-link {% if request.endpoint == 'sales' %}active{% endif %}">
+                
+                <a href="/sales" class="nav-link ">
                     <span class="material-icons">shopping_cart</span>
                     <span class="nav-text">Sales</span>
                 </a>
-                {% endif %}
+                
 
-                {% if current_user.has_permission('view_inventory') %}
+                
                 <div class="nav-group">
                     <div class="nav-group-title">
                         <span class="material-icons">inventory</span>
                         <span>Inventory</span>
                     </div>
-                    <a href="{{ url_for('inventory') }}" class="nav-link nav-sub {% if request.endpoint == 'inventory' %}active{% endif %}">
+                    <a href="/inventory" class="nav-link nav-sub ">
                         <span class="nav-text">Items</span>
                     </a>
-                    <a href="{{ url_for('categories') }}" class="nav-link nav-sub {% if request.endpoint == 'categories' %}active{% endif %}">
+                    <a href="/categories" class="nav-link nav-sub ">
                         <span class="nav-text">Categories</span>
                     </a>
                 </div>
-                {% endif %}
+                
 
-                {% if current_user.has_permission('view_sales') %}
-                <a href="{{ url_for('reports') }}" class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}">
+                
+                <a href="/reports" class="nav-link ">
                     <span class="material-icons">analytics</span>
                     <span class="nav-text">Reports</span>
                 </a>
-                {% endif %}
+                
 
-                {% if current_user.has_permission('manage_users') %}
-                <a href="{{ url_for('users') }}" class="nav-link {% if request.endpoint == 'users' %}active{% endif %}">
+                
+                <a href="/users" class="nav-link ">
                     <span class="material-icons">people</span>
                     <span class="nav-text">Users</span>
                 </a>
-                {% endif %}
+                
 
-                {% if current_user.has_permission('system_admin') %}
+                
                 <div class="nav-group">
                     <div class="nav-group-title">
                         <span class="material-icons">admin_panel_settings</span>
                         <span>Administration</span>
                     </div>
-                    <a href="{{ url_for('permissions') }}" class="nav-link nav-sub {% if request.endpoint == 'permissions' %}active{% endif %}">
+                    <a href="/permissions" class="nav-link nav-sub ">
                         <span class="nav-text">Permissions</span>
                     </a>
-                    <a href="{{ url_for('activity_logs') }}" class="nav-link nav-sub {% if request.endpoint == 'activity_logs' %}active{% endif %}">
+                    <a href="/activity_logs" class="nav-link nav-sub ">
                         <span class="nav-text">Activity Logs</span>
                     </a>
-                    <a href="{{ url_for('branding') }}" class="nav-link nav-sub {% if request.endpoint == 'branding' %}active{% endif %}">
+                    <a href="/branding" class="nav-link nav-sub ">
                         <span class="nav-text">Branding</span>
                     </a>
-                    <a href="{{ url_for('security_monitor') }}" class="nav-link nav-sub {% if request.endpoint == 'security_monitor' %}active{% endif %}">
-                        <span class="nav-text">Security Monitor</span>
+                    <a href="/backup" class="nav-link nav-sub active">
+                        <span class="nav-text">Backup</span>
                     </a>
-
                 </div>
-                {% endif %}
+                
 
                 <!-- Help & Documentation -->
                 <div class="nav-group">
@@ -967,23 +966,23 @@
                         <span class="material-icons">help</span>
                         <span>Help</span>
                     </div>
-                    <a href="{{ url_for('user_guide') }}" class="nav-link nav-sub {% if request.endpoint == 'user_guide' %}active{% endif %}">
+                    <a href="/user_guide" class="nav-link nav-sub ">
                         <span class="nav-text">User Guide</span>
                     </a>
-                    {% if current_user.has_permission('system_admin') %}
-                    <a href="{{ url_for('admin_guide') }}" class="nav-link nav-sub {% if request.endpoint == 'admin_guide' %}active{% endif %}">
+                    
+                    <a href="/admin_guide" class="nav-link nav-sub ">
                         <span class="nav-text">Admin Guide</span>
                     </a>
-                    <a href="{{ url_for('developer_guide') }}" class="nav-link nav-sub {% if request.endpoint == 'developer_guide' %}active{% endif %}">
+                    <a href="/developer_guide" class="nav-link nav-sub ">
                         <span class="nav-text">Developer Guide</span>
                     </a>
-                    {% endif %}
+                    
                 </div>
             </nav>
 
             <!-- Logout Section at Bottom -->
             <div class="sidebar-footer">
-                <form method="POST" action="{{ url_for('logout') }}" style="width: 100%;">
+                <form method="POST" action="/logout" style="width: 100%;">
                     <button type="submit" class="logout-button">
                         <span class="material-icons">logout</span>
                         <span class="logout-text">Logout</span>
@@ -996,30 +995,281 @@
         <!-- Main Content Area -->
         <main class="content">
             <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
+            
+                
                     <div class="flash-messages">
-                        {% for category, message in messages %}
-                            <div class="flash-message flash-{{ category }}">
+                        
+                            <div class="flash-message flash-error">
                                 <span class="material-icons">
-                                    {% if category == 'success' %}check_circle{% elif category == 'error' %}error{% else %}info{% endif %}
+                                    error
                                 </span>
-                                <span>{{ message }}</span>
+                                <span>Error downloading backup: name &#39;send_file&#39; is not defined</span>
                                 <button class="flash-close" onclick="this.parentElement.remove()">
                                     <span class="material-icons">close</span>
                                 </button>
                             </div>
-                        {% endfor %}
+                        
                     </div>
-                {% endif %}
-            {% endwith %}
+                
+            
 
-            {% block content %}{% endblock %}
+            
+<section id="backup" class="active">
+    <div class="backup-header">
+        <h2>🛡️ Database Backup</h2>
+        <p class="header-description">Create and download backups of your POS system database</p>
+    </div>
+
+    <!-- Backup Overview -->
+    <div class="backup-overview">
+        <div class="overview-card">
+            <div class="overview-icon">💾</div>
+            <div class="overview-content">
+                <h3>Database Status</h3>
+                <p>SQLite Database - Active</p>
+                <small>Last backup: Never</small>
+            </div>
+        </div>
+        <div class="overview-card">
+            <div class="overview-icon">📊</div>
+            <div class="overview-content">
+                <h3>Data Summary</h3>
+                <p>0 Users, 0 Items</p>
+                <small>0 Sales Records</small>
+            </div>
+        </div>
+        <div class="overview-card">
+            <div class="overview-icon">🛡️</div>
+            <div class="overview-content">
+                <h3>Backup Security</h3>
+                <p>System Admin Access Required</p>
+                <small>Encrypted & Secure</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Actions -->
+    <div class="backup-actions-section">
+        <h3>📤 Backup Actions</h3>
+
+        <div class="backup-actions-grid">
+            <!-- Download Current Database -->
+            <div class="backup-action-card">
+                <div class="action-header">
+                    <div class="action-icon">⬇️</div>
+                    <h4>Download Database</h4>
+                </div>
+                <div class="action-description">
+                    <p>Download the current database file directly to your computer.</p>
+                    <ul>
+                        <li>Complete database backup</li>
+                        <li>Ready for external storage</li>
+                        <li>Includes all data</li>
+                    </ul>
+                </div>
+                <div class="action-buttons">
+                    <a href="/download_backup" class="btn-primary action-btn">
+                        <span class="material-icons">download</span>
+                        Download Now
+                    </a>
+                </div>
+            </div>
+
+            <!-- Create Local Backup -->
+            <div class="backup-action-card">
+                <div class="action-header">
+                    <div class="action-icon">💾</div>
+                    <h4>Create Local Backup</h4>
+                </div>
+                <div class="action-description">
+                    <p>Create a timestamped backup file in the server's backup directory.</p>
+                    <ul>
+                        <li>Automatic timestamp</li>
+                        <li>Stored on server</li>
+                        <li>Multiple versions</li>
+                    </ul>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="createLocalBackup()" class="btn-success action-btn">
+                        <span class="material-icons">backup</span>
+                        Create Backup
+                    </button>
+                </div>
+            </div>
+
+            <!-- Restore Database -->
+            <div class="backup-action-card">
+                <div class="action-header">
+                    <div class="action-icon">🔄</div>
+                    <h4>Restore Database</h4>
+                </div>
+                <div class="action-description">
+                    <p>Restore database from a backup file.</p>
+                    <ul>
+                        <li>Upload backup file</li>
+                        <li>Automatic validation</li>
+                        <li>Safe restoration</li>
+                    </ul>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="showRestoreModal()" class="btn-warning action-btn">
+                        <span class="material-icons">restore</span>
+                        Restore Backup
+                    </button>
+                </div>
+            </div>
+
+            <!-- Backup History -->
+            <div class="backup-action-card">
+                <div class="action-header">
+                    <div class="action-icon">📋</div>
+                    <h4>Backup History</h4>
+                </div>
+                <div class="action-description">
+                    <p>View and manage your backup files.</p>
+                    <ul>
+                        <li>Backup file list</li>
+                        <li>File sizes & dates</li>
+                        <li>Download old backups</li>
+                    </ul>
+                </div>
+                <div class="action-buttons">
+                    <button onclick="showBackupHistory()" class="btn-secondary action-btn">
+                        <span class="material-icons">history</span>
+                        View History
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Information -->
+    <div class="backup-info-section">
+        <h3>ℹ️ Backup Information</h3>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h4>🛡️ Security</h4>
+                <p>Backups contain sensitive data. Store them securely and never share with unauthorized users.</p>
+            </div>
+
+            <div class="info-card">
+                <h4>📅 Schedule</h4>
+                <p>Regular backups are recommended. Consider daily backups for active systems.</p>
+            </div>
+
+            <div class="info-card">
+                <h4>💾 Storage</h4>
+                <p>Store backups in multiple locations including external drives and cloud storage.</p>
+            </div>
+
+            <div class="info-card">
+                <h4>🔄 Restore</h4>
+                <p>To restore, simply replace the current database file with your backup file.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Backups Table -->
+    <div class="recent-backups-section">
+        <h3>📂 Recent Backups</h3>
+        <div id="backupHistoryContainer">
+            <div class="loading-backups">
+                <div class="loading-spinner"></div>
+                <p>Loading backup history...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Backup History Modal -->
+<div id="backupHistoryModal" class="modal">
+    <div class="modal-content large-modal">
+        <div class="modal-header">
+            <h3>Backup History</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="backupHistoryContent">
+                <div class="loading-spinner"></div>
+                <p>Loading backup files...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Restore Backup Modal -->
+<div id="restoreModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🔄 Restore Database</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="restore-warning">
+                <div class="warning-icon">⚠️</div>
+                <div class="warning-content">
+                    <h4>Warning: This action cannot be undone!</h4>
+                    <p>Restoring a backup will replace your current database. Make sure you have a recent backup of your current data.</p>
+                    <ul>
+                        <li>Current data will be backed up automatically</li>
+                        <li>Application may need to be restarted</li>
+                        <li>All users will be logged out</li>
+                    </ul>
+                </div>
+            </div>
+
+            <form id="restoreForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="backupFile" class="form-label">
+                        <span class="material-icons">upload_file</span>
+                        Select Backup File
+                    </label>
+                    <div class="file-input-wrapper">
+                        <input type="file"
+                               id="backupFile"
+                               name="backup_file"
+                               accept=".db"
+                               required
+                               onchange="handleFileSelect(event)">
+                        <div class="file-input-display">
+                            <span class="material-icons">cloud_upload</span>
+                            <span id="fileName">Choose a backup file (.db)</span>
+                        </div>
+                    </div>
+                    <small class="form-help">Only .db files are accepted. File size should not exceed 100MB.</small>
+                </div>
+
+                <div class="restore-info">
+                    <div class="info-item">
+                        <span class="material-icons">info</span>
+                        <span>The restore process will:</span>
+                    </div>
+                    <ul>
+                        <li>Create a temporary backup of current data</li>
+                        <li>Validate the uploaded backup file</li>
+                        <li>Replace the current database</li>
+                        <li>Log out all current users</li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeRestoreModal()">
+                <span class="material-icons">cancel</span>
+                Cancel
+            </button>
+            <button type="button" class="btn-danger" onclick="confirmRestore()" id="restoreBtn">
+                <span class="material-icons">restore</span>
+                <span class="btn-text">Restore Database</span>
+            </button>
+        </div>
+    </div>
+</div>
+
         </main>
     </div>
-    {% else %}
-        {% block login_content %}{% endblock %}
-    {% endif %}
+    
 
     <!-- Change Password Modal -->
     <div id="changePasswordModal" class="modal-overlay" role="dialog" aria-labelledby="changePasswordTitle" aria-modal="true">
@@ -1035,7 +1285,7 @@
                     </button>
                 </div>
 
-                <form method="POST" action="{{ url_for('change_password') }}" class="modal-form" novalidate>
+                <form method="POST" action="/change_password" class="modal-form" novalidate>
                     <div class="modal-body">
                         <div class="form-section">
                             <div class="form-group">
@@ -1132,17 +1382,12 @@
                     <span class="material-icons">close</span>
                 </button>
             </div>
-            <form method="POST" action="{{ url_for('profile') }}">
+            <form method="POST" action="/profile">
                 <input type="hidden" name="action" value="set_secret_question">
                 <div class="modal-body">
                     <p class="help-text">Set up a secret question to help you recover your password if forgotten.</p>
 
-                    {% if current_user.is_authenticated and current_user.secret_question %}
-                    <div class="current-secret">
-                        <p><strong>Current Question:</strong> {{ current_user.secret_question }}</p>
-                        <p class="text-muted">You can update your security question below.</p>
-                    </div>
-                    {% endif %}
+                    
 
                     <div class="form-group">
                         <label for="secret_question_modal">Secret Question</label>
@@ -1166,7 +1411,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" onclick="closeSecretQuestionModal()">Cancel</button>
                     <button type="submit" class="btn-success">
-                        {% if current_user.is_authenticated and current_user.secret_question %}Update{% else %}Set{% endif %} Question
+                        Set Question
                     </button>
                 </div>
             </form>
@@ -1187,11 +1432,11 @@
                     <!-- User Info -->
                     <div class="profile-info-section">
                         <div class="profile-avatar-large">
-                            <span class="avatar-text-xl">{{ current_user.username[0].upper() if current_user.is_authenticated else 'U' }}</span>
+                            <span class="avatar-text-xl">A</span>
                         </div>
-                        <h3>{{ current_user.username if current_user.is_authenticated else 'User' }}</h3>
-                        <p class="role-badge-large">{{ current_user.role.title() if current_user.is_authenticated else 'Guest' }}</p>
-                        <p class="join-date-large">Member since {{ current_user.created_at.strftime('%B %Y') if current_user.is_authenticated else 'N/A' }}</p>
+                        <h3>admin</h3>
+                        <p class="role-badge-large">Admin</p>
+                        <p class="join-date-large">Member since September 2025</p>
                     </div>
 
                     <!-- Account Statistics -->
@@ -1200,11 +1445,11 @@
                         <div class="stats-grid-modal">
                             <div class="stat-item-modal">
                                 <span class="stat-label-modal">Total Sales Made</span>
-                                <span class="stat-value-modal">{{ current_user.sales|length if current_user.is_authenticated else 0 }}</span>
+                                <span class="stat-value-modal">13</span>
                             </div>
                             <div class="stat-item-modal">
                                 <span class="stat-label-modal">Account Type</span>
-                                <span class="stat-value-modal">{{ current_user.role.title() if current_user.is_authenticated else 'Guest' }}</span>
+                                <span class="stat-value-modal">Admin</span>
                             </div>
                             <div class="stat-item-modal">
                                 <span class="stat-label-modal">Last Login</span>
@@ -1631,8 +1876,393 @@
     }
     </style>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    {% block extra_scripts %}{% endblock %}
+    <script src="/static/js/script.js"></script>
+    
+<script>
+let backupHistoryModal = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modal
+    backupHistoryModal = new Modal('backupHistoryModal');
+
+    // Load backup history on page load
+    loadBackupHistory();
+});
+
+function createLocalBackup() {
+    const btn = event.target.closest('.action-btn');
+    const originalText = btn.innerHTML;
+
+    // Show loading state
+    btn.innerHTML = '<div class="loading-spinner small"></div> Creating...';
+    btn.disabled = true;
+
+    fetch('/create_backup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            loadBackupHistory(); // Refresh the backup list
+        } else {
+            showAlert(data.error || 'Failed to create backup', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Failed to create backup. Please try again.', 'error');
+    })
+    .finally(() => {
+        // Restore button state
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+function showBackupHistory() {
+    backupHistoryModal.show();
+    loadBackupHistoryModal();
+}
+
+function loadBackupHistory() {
+    const container = document.getElementById('backupHistoryContainer');
+
+    // Fetch real backup data from server
+    fetch('/list_backups')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.backups.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-backups">
+                            <div class="material-icons" style="font-size: 48px; color: #6c757d; margin-bottom: 15px;">backup</div>
+                            <h4>No backups found</h4>
+                            <p>Create your first backup to see it here.</p>
+                        </div>
+                    `;
+                } else {
+                    // Show only the 3 most recent backups
+                    const recentBackups = data.backups.slice(0, 3);
+                    container.innerHTML = `
+                        <div class="backup-files-list">
+                            ${recentBackups.map(backup => `
+                                <div class="backup-file-item">
+                                    <div class="file-info">
+                                        <div class="file-name">${backup.filename}</div>
+                                        <div class="file-details">${backup.size_mb} MB • ${new Date(backup.created_at).toLocaleString()}</div>
+                                    </div>
+                                    <div class="file-actions">
+                                        <button onclick="downloadBackupFile('${backup.filename}')" class="btn-small">
+                                            <span class="material-icons">download</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${data.backups.length > 3 ? `
+                            <div class="view-all-backups">
+                                <button onclick="showBackupHistory()" class="btn-secondary">
+                                    <span class="material-icons">history</span>
+                                    View All ${data.backups.length} Backups
+                                </button>
+                            </div>
+                        ` : ''}
+                    `;
+                }
+            } else {
+                container.innerHTML = `
+                    <div class="error-message">
+                        <div class="material-icons">error</div>
+                        <p>Failed to load backup history: ${data.error}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading backup history:', error);
+            container.innerHTML = `
+                <div class="error-message">
+                    <div class="material-icons">error</div>
+                    <p>Failed to load backup history. Please try again.</p>
+                </div>
+            `;
+        });
+}
+
+function loadBackupHistoryModal() {
+    const content = document.getElementById('backupHistoryContent');
+
+    // Fetch real backup data from server
+    fetch('/list_backups')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.backups.length === 0) {
+                    content.innerHTML = `
+                        <div class="no-backups">
+                            <div class="material-icons" style="font-size: 48px; color: #6c757d; margin-bottom: 15px;">backup</div>
+                            <h4>No backups found</h4>
+                            <p>Create your first backup to see it here.</p>
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = `
+                        <div class="backup-files-table">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Filename</th>
+                                        <th>Size</th>
+                                        <th>Created</th>
+                                        <th>Created By</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.backups.map(backup => `
+                                        <tr>
+                                            <td>${backup.filename}</td>
+                                            <td>${backup.size_mb} MB</td>
+                                            <td>${new Date(backup.created_at).toLocaleString()}</td>
+                                            <td>${backup.created_by}</td>
+                                            <td>
+                                                <button onclick="downloadBackupFile('${backup.filename}')" class="btn-small">
+                                                    <span class="material-icons">download</span> Download
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            } else {
+                content.innerHTML = `
+                    <div class="error-message">
+                        <div class="material-icons">error</div>
+                        <p>Failed to load backup history: ${data.error}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading backup history:', error);
+            content.innerHTML = `
+                <div class="error-message">
+                    <div class="material-icons">error</div>
+                    <p>Failed to load backup history. Please try again.</p>
+                </div>
+            `;
+        });
+}
+
+function downloadBackupFile(filename) {
+    // Create a temporary link to download the file
+    const link = document.createElement('a');
+    link.href = `/download_specific_backup/${filename}`;
+    link.download = filename;
+    link.style.display = 'none';
+
+    // Add to DOM, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showAlert(`Downloading ${filename}...`, 'info');
+}
+
+function showRestoreModal() {
+    const modal = document.getElementById('restoreModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeRestoreModal() {
+    const modal = document.getElementById('restoreModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        // Reset form
+        const form = document.getElementById('restoreForm');
+        if (form) form.reset();
+        const fileName = document.getElementById('fileName');
+        if (fileName) fileName.textContent = 'Choose a backup file (.db)';
+    }
+}
+
+function handleFileSelect(event) {
+    const file = event.target.files[0];
+    const fileName = document.getElementById('fileName');
+
+    if (file) {
+        // Validate file type
+        if (!file.name.endsWith('.db')) {
+            showAlert('Please select a valid .db backup file.', 'error');
+            event.target.value = '';
+            if (fileName) fileName.textContent = 'Choose a backup file (.db)';
+            return;
+        }
+
+        // Validate file size (100MB limit)
+        const maxSize = 100 * 1024 * 1024; // 100MB
+        if (file.size > maxSize) {
+            showAlert('File size exceeds 100MB limit.', 'error');
+            event.target.value = '';
+            if (fileName) fileName.textContent = 'Choose a backup file (.db)';
+            return;
+        }
+
+        // Update display
+        if (fileName) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            fileName.textContent = `${file.name} (${sizeMB} MB)`;
+        }
+
+        showAlert(`Selected backup file: ${file.name}`, 'info');
+    } else {
+        if (fileName) fileName.textContent = 'Choose a backup file (.db)';
+    }
+}
+
+function confirmRestore() {
+    const fileInput = document.getElementById('backupFile');
+    const restoreBtn = document.getElementById('restoreBtn');
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        showAlert('Please select a backup file first.', 'error');
+        return;
+    }
+
+    const file = fileInput.files[0];
+
+    // Double confirmation
+    const confirmed = confirm(
+        `⚠️ WARNING: This will replace your current database!\n\n` +
+        `Selected file: ${file.name}\n` +
+        `File size: ${(file.size / (1024 * 1024)).toFixed(2)} MB\n\n` +
+        `Are you absolutely sure you want to proceed?`
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    // Show loading state
+    const originalText = restoreBtn.innerHTML;
+    restoreBtn.innerHTML = '<div class="loading-spinner small"></div> Restoring...';
+    restoreBtn.disabled = true;
+
+    // Create FormData for file upload
+    const formData = new FormData();
+    formData.append('backup_file', file);
+
+    fetch('/restore_backup', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+
+            // Show additional warning about restart
+            if (data.warning) {
+                setTimeout(() => {
+                    showAlert(data.warning, 'info');
+                }, 2000);
+            }
+
+            // Close modal after success
+            setTimeout(() => {
+                closeRestoreModal();
+                // Optionally redirect to login or show restart message
+                showAlert('Please restart the application to complete the restoration.', 'info');
+            }, 3000);
+
+        } else {
+            showAlert(data.error || 'Failed to restore backup', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Failed to restore backup. Please try again.', 'error');
+    })
+    .finally(() => {
+        // Restore button state
+        restoreBtn.innerHTML = originalText;
+        restoreBtn.disabled = false;
+    });
+}
+
+// Modal class for handling modal dialogs
+class Modal {
+    constructor(modalId) {
+        this.modal = document.getElementById(modalId);
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        // Close modal when clicking outside
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) {
+                this.hide();
+            }
+        });
+
+        // Close modal with close button
+        const closeBtn = this.modal.querySelector('.modal-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.hide());
+        }
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.modal.style.display === 'flex') {
+                this.hide();
+            }
+        });
+    }
+
+    show() {
+        this.modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    hide() {
+        this.modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Utility function to show alerts
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type}`;
+    alertDiv.innerHTML = `
+        <span class="material-icons">${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info'}</span>
+        ${message}
+    `;
+
+    // Insert at top of content
+    const content = document.querySelector('.content') || document.body;
+    content.insertBefore(alertDiv, content.firstChild);
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
+</script>
+
 
     <script>
     // User Menu Functions - Enhanced Professional Dropdown
@@ -1722,7 +2352,7 @@
             // Create and submit logout form
             const logoutForm = document.createElement('form');
             logoutForm.method = 'POST';
-            logoutForm.action = '{{ url_for("logout") }}';
+            logoutForm.action = '/logout';
             logoutForm.style.display = 'none';
 
             // Add CSRF token if using Flask-WTF

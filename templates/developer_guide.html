@@ -741,6 +741,462 @@ items = Item.query.\
             </div>
         </div>
     </div>
+
+    <!-- Security Monitor API -->
+    <div class="guide-section">
+        <h3>🛡️ Security Monitor API</h3>
+        <div class="guide-content">
+            <h4>Security Monitoring Endpoints</h4>
+
+            <div class="api-endpoint">
+                <h5>GET /api/security/stats</h5>
+                <p>Retrieve security statistics and metrics</p>
+                <div class="api-details">
+                    <strong>Response:</strong>
+                    <pre><code>{
+    "total_attempts": 1250,
+    "successful_logins": 1180,
+    "failed_attempts": 70,
+    "blocked_ips": 5,
+    "captcha_required": 45,
+    "success_rate": 94.4
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>GET /api/security/attempts</h5>
+                <p>Get recent login attempts with filtering</p>
+                <div class="api-details">
+                    <strong>Query Parameters:</strong>
+                    <ul>
+                        <li><code>limit</code> - Number of records to return (default: 100)</li>
+                        <li><code>status</code> - Filter by success/failure</li>
+                        <li><code>ip</code> - Filter by IP address</li>
+                        <li><code>start_date</code> - Start date for filtering</li>
+                        <li><code>end_date</code> - End date for filtering</li>
+                    </ul>
+                    <strong>Example:</strong> <code>/api/security/attempts?limit=50&status=failed</code>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>POST /api/unblock_ip/{ip_address}</h5>
+                <p>Unblock a previously blocked IP address</p>
+                <div class="api-details">
+                    <strong>Response:</strong>
+                    <pre><code>{
+    "success": true,
+    "message": "IP address unblocked successfully",
+    "ip_address": "192.168.1.100"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Logs API -->
+    <div class="guide-section">
+        <h3>📋 Activity Logs API</h3>
+        <div class="guide-content">
+            <h4>Activity Logging Endpoints</h4>
+
+            <div class="api-endpoint">
+                <h5>GET /api/activity/logs</h5>
+                <p>Retrieve system activity logs</p>
+                <div class="api-details">
+                    <strong>Query Parameters:</strong>
+                    <ul>
+                        <li><code>user_id</code> - Filter by user ID</li>
+                        <li><code>action</code> - Filter by action type</li>
+                        <li><code>start_date</code> - Start date for filtering</li>
+                        <li><code>end_date</code> - End date for filtering</li>
+                        <li><code>limit</code> - Number of records to return</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>POST /api/activity/log</h5>
+                <p>Manually log an activity (for custom integrations)</p>
+                <div class="api-details">
+                    <strong>Request Body:</strong>
+                    <pre><code>{
+    "user_id": 1,
+    "action": "custom_action",
+    "details": "Custom activity details",
+    "ip_address": "192.168.1.100"
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Branding API -->
+    <div class="guide-section">
+        <h3>🎨 Branding API</h3>
+        <div class="guide-content">
+            <h4>Branding Configuration Endpoints</h4>
+
+            <div class="api-endpoint">
+                <h5>GET /api/branding</h5>
+                <p>Get current branding configuration</p>
+                <div class="api-details">
+                    <strong>Response:</strong>
+                    <pre><code>{
+    "company_name": "My Store",
+    "address": "123 Main St",
+    "phone": "+1-555-0123",
+    "receipt_header": "Welcome to My Store!",
+    "receipt_footer": "Thank you for shopping with us!",
+    "tax_rate": 8.5,
+    "currency": "USD"
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>POST /api/branding</h5>
+                <p>Update branding configuration</p>
+                <div class="api-details">
+                    <strong>Content-Type:</strong> application/json
+                    <strong>Request Body:</strong>
+                    <pre><code>{
+    "company_name": "Updated Store Name",
+    "receipt_header": "Welcome to our updated store!",
+    "tax_rate": 9.0
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>POST /api/branding/logo</h5>
+                <p>Upload company logo</p>
+                <div class="api-details">
+                    <strong>Content-Type:</strong> multipart/form-data
+                    <strong>Form Data:</strong> logo (image file)
+                    <strong>Supported Formats:</strong> PNG, JPG, JPEG (max 2MB)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories API -->
+    <div class="guide-section">
+        <h3>📂 Categories API</h3>
+        <div class="guide-content">
+            <h4>Category Management Endpoints</h4>
+
+            <div class="api-endpoint">
+                <h5>GET /api/categories</h5>
+                <p>Retrieve all product categories</p>
+                <div class="api-details">
+                    <strong>Response:</strong>
+                    <pre><code>[{
+    "id": 1,
+    "name": "Electronics",
+    "description": "Electronic devices and accessories",
+    "item_count": 25,
+    "created_at": "2024-01-15T10:30:00Z"
+}]</code></pre>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>POST /api/categories</h5>
+                <p>Create a new category</p>
+                <div class="api-details">
+                    <strong>Request Body:</strong>
+                    <pre><code>{
+    "name": "New Category",
+    "description": "Category description",
+    "parent_id": null
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>PUT /api/categories/{id}</h5>
+                <p>Update an existing category</p>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>DELETE /api/categories/{id}</h5>
+                <p>Delete a category (only if empty)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SSL/TLS Configuration -->
+    <div class="guide-section">
+        <h3>🔒 SSL/TLS Configuration</h3>
+        <div class="guide-content">
+            <h4>SSL/TLS Setup for Production</h4>
+
+            <h4>Certificate Installation</h4>
+            <div class="code-example">
+                <pre><code># 1. Obtain SSL certificate files
+certificate.crt
+private.key
+intermediate.crt (if provided)
+
+# 2. Configure Flask for HTTPS
+from flask_sslify import SSLify
+
+app = Flask(__name__)
+sslify = SSLify(app)
+
+if __name__ == '__main__':
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context.load_cert_chain('certificate.crt', 'private.key')
+    app.run(host='0.0.0.0', port=443, ssl_context=context)</code></pre>
+            </div>
+
+            <h4>Nginx SSL Configuration</h4>
+            <div class="code-example">
+                <pre><code>server {
+    listen 443 ssl http2;
+    server_name yourdomain.com;
+
+    ssl_certificate /path/to/certificate.crt;
+    ssl_certificate_key /path/to/private.key;
+    ssl_trusted_certificate /path/to/intermediate.crt;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512;
+    ssl_prefer_server_ciphers off;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+            </div>
+
+            <h4>SSL Testing Commands</h4>
+            <div class="code-example">
+                <pre><code># Test SSL certificate
+openssl s_client -connect yourdomain.com:443 -servername yourdomain.com
+
+# Check certificate details
+openssl x509 -in certificate.crt -text -noout
+
+# Test SSL configuration
+curl -I https://yourdomain.com</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Operations API -->
+    <div class="guide-section">
+        <h3>⚡ Bulk Operations API</h3>
+        <div class="guide-content">
+            <h4>Bulk Processing Endpoints</h4>
+
+            <div class="api-endpoint">
+                <h5>POST /api/bulk/items</h5>
+                <p>Bulk create or update items</p>
+                <div class="api-details">
+                    <strong>Request Body:</strong>
+                    <pre><code>{
+    "items": [
+        {
+            "name": "Item 1",
+            "buying_price": 10.00,
+            "selling_price": 15.00,
+            "quantity": 100
+        },
+        {
+            "name": "Item 2",
+            "buying_price": 20.00,
+            "selling_price": 30.00,
+            "quantity": 50
+        }
+    ],
+    "update_existing": false
+}</code></pre>
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>POST /api/bulk/barcodes</h5>
+                <p>Generate barcodes for multiple items</p>
+                <div class="api-details">
+                    <strong>Request Body:</strong>
+                    <pre><code>{
+    "item_ids": [1, 2, 3, 4, 5],
+    "format": "png",
+    "size": "medium"
+}</code></pre>
+                    <strong>Response:</strong> ZIP file containing barcode images
+                </div>
+            </div>
+
+            <div class="api-endpoint">
+                <h5>POST /api/bulk/categories</h5>
+                <p>Assign categories to multiple items</p>
+                <div class="api-details">
+                    <strong>Request Body:</strong>
+                    <pre><code>{
+    "item_ids": [1, 2, 3],
+    "category_id": 5
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Features -->
+    <div class="guide-section">
+        <h3>🚀 Advanced Features</h3>
+        <div class="guide-content">
+            <h4>Receipt Policy Configuration</h4>
+            <div class="code-example">
+                <pre><code># Configure receipt printing policies
+RECEIPT_POLICIES = {
+    'auto_print': True,
+    'print_customer_copy': True,
+    'print_merchant_copy': False,
+    'include_barcode': True,
+    'include_qr_code': False,
+    'paper_size': '80mm',
+    'font_size': 'small'
+}</code></pre>
+            </div>
+
+            <h4>Enhanced Search Implementation</h4>
+            <div class="code-example">
+                <pre><code># Advanced search with filters
+@app.route('/api/search')
+def advanced_search():
+    query = request.args.get('q', '')
+    category = request.args.get('category')
+    min_price = request.args.get('min_price')
+    max_price = request.args.get('max_price')
+
+    items = Item.query
+
+    if query:
+        items = items.filter(Item.name.contains(query))
+
+    if category:
+        items = items.filter(Item.category_id == category)
+
+    if min_price:
+        items = items.filter(Item.selling_price >= float(min_price))
+
+    if max_price:
+        items = items.filter(Item.selling_price <= float(max_price))
+
+    return jsonify([item.to_dict() for item in items.all()])</code></pre>
+            </div>
+
+            <h4>Data Export Features</h4>
+            <div class="code-example">
+                <pre><code># Export data in multiple formats
+@app.route('/api/export/<format>')
+def export_data(format):
+    data_type = request.args.get('type', 'inventory')
+
+    if data_type == 'inventory':
+        items = Item.query.all()
+        data = [item.to_dict() for item in items]
+    elif data_type == 'sales':
+        sales = Sale.query.all()
+        data = [sale.to_dict() for sale in sales]
+
+    if format == 'csv':
+        return export_csv(data, f'{data_type}.csv')
+    elif format == 'json':
+        return jsonify(data)
+    elif format == 'xml':
+        return export_xml(data, f'{data_type}.xml')</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Compatibility -->
+    <div class="guide-section">
+        <h3>📱 Mobile Compatibility</h3>
+        <div class="guide-content">
+            <h4>Responsive Design Implementation</h4>
+
+            <h4>CSS Media Queries</h4>
+            <div class="code-example">
+                <pre><code>/* Mobile-first responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    .btn-group {
+        flex-direction: column;
+    }
+
+    .card-body .row {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+}</code></pre>
+            </div>
+
+            <h4>Touch-Friendly Interactions</h4>
+            <div class="code-example">
+                <pre><code>/* Touch-friendly button sizes */
+.btn-touch {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1.5rem;
+}
+
+/* Swipe gestures for mobile */
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+});
+
+document.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+});
+
+function handleSwipe() {
+    const swipeThreshold = 50;
+    if (touchEndX < touchStartX - swipeThreshold) {
+        // Swipe left - next item
+        showNextItem();
+    }
+    if (touchEndX > touchStartX + swipeThreshold) {
+        // Swipe right - previous item
+        showPreviousItem();
+    }
+}</code></pre>
+            </div>
+        </div>
+    </div>
 </section>
 {% endblock %}
 
@@ -796,6 +1252,178 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Maximum Contrast - Black Text for All Content */
+* {
+    color: #000000 !important;
+}
+
+body, html {
+    color: #000000 !important;
+}
+
+.text-primary { color: #000000 !important; }
+.text-success { color: #000000 !important; }
+.text-warning { color: #000000 !important; }
+.text-danger { color: #000000 !important; }
+.text-info { color: #000000 !important; }
+.text-gray-800 { color: #000000 !important; }
+.text-muted { color: #000000 !important; }
+.text-dark { color: #000000 !important; }
+.text-secondary { color: #000000 !important; }
+.text-light { color: #f8f9fa !important; }
+.text-white { color: #ffffff !important; }
+.text-black { color: #000000 !important; }
+
+/* Ensure all text has proper contrast */
+.card-body {
+    color: #1f2937;
+}
+
+.card-body .text-xs {
+    color: inherit !important;
+}
+
+.card-body h5, .card-body h6 {
+    color: #1f2937 !important;
+}
+
+/* Fix specific text color issues */
+.h5 {
+    color: #1f2937 !important;
+}
+
+.h4 {
+    color: #1f2937 !important;
+}
+
+.text-uppercase {
+    color: inherit !important;
+}
+
+/* Ensure table text is visible */
+.table {
+    color: #1f2937;
+}
+
+.table th {
+    color: #374151 !important;
+    background-color: #f9fafb !important;
+}
+
+.table td {
+    color: #1f2937 !important;
+}
+
+/* Fix badge text colors */
+.badge {
+    color: white !important;
+}
+
+.badge-success {
+    background-color: #059669 !important;
+    color: white !important;
+}
+
+.badge-danger {
+    background-color: #dc2626 !important;
+    color: white !important;
+}
+
+.badge-warning {
+    background-color: #d97706 !important;
+    color: white !important;
+}
+
+.badge-info {
+    background-color: #0891b2 !important;
+    color: white !important;
+}
+
+/* Fix form label colors */
+.form-label {
+    color: #374151 !important;
+}
+
+/* Ensure all headings are visible */
+h1, h2, h3, h4, h5, h6 {
+    color: #1f2937 !important;
+}
+
+/* Fix specific card header text */
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #ffffff !important;
+}
+
+.card-header h6 {
+    color: #ffffff !important;
+}
+
+/* Fix loading overlay text */
+.loading-content p {
+    color: #374151 !important;
+}
+
+/* Fix toast text colors */
+.toast-success {
+    background-color: #ecfdf5;
+    border-left-color: #10b981;
+    color: #065f46 !important;
+}
+
+.toast-error {
+    background-color: #fef2f2;
+    border-left-color: #ef4444;
+    color: #991b1b !important;
+}
+
+.toast-content {
+    color: inherit !important;
+}
+
+/* Fix modal text colors */
+.modal-content {
+    color: #1f2937;
+}
+
+.modal-title {
+    color: #1f2937 !important;
+}
+
+.modal-body p {
+    color: #374151 !important;
+}
+
+/* Ensure all links are visible */
+a {
+    color: #4f46e5;
+}
+
+a:hover {
+    color: #3730a3;
+}
+
+/* Fix any remaining white text issues */
+* {
+    color: inherit;
+}
+
+/* Specific overrides for known issues */
+.text-gray-800 {
+    color: #1f2937 !important;
+}
+
+.text-muted {
+    color: #6b7280 !important;
+}
+
+/* Ensure proper contrast for all Bootstrap text utilities */
+.text-dark { color: #1f2937 !important; }
+.text-secondary { color: #6b7280 !important; }
+.text-light { color: #f9fafb !important; }
+.text-white { color: #ffffff !important; }
+.text-black { color: #000000 !important; }
+
 .copy-btn {
     position: absolute;
     top: 10px;
@@ -845,6 +1473,275 @@ pre {
     font-family: 'Monaco', 'Consolas', monospace;
     font-size: 14px;
     line-height: 1.5;
+}
+
+/* Developer guide specific styles */
+.guide-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.guide-section h3 {
+    color: #1f2937 !important;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.guide-content h4 {
+    color: #374151 !important;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.guide-content h5 {
+    color: #4b5563 !important;
+}
+
+.api-endpoint {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.api-endpoint h5 {
+    color: #1f2937 !important;
+    margin-bottom: 0.5rem;
+    font-family: 'Monaco', 'Consolas', monospace;
+    background: #667eea;
+    color: white !important;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    margin: -1rem -1rem 1rem -1rem;
+}
+
+.api-details {
+    margin-top: 1rem;
+}
+
+.api-details strong {
+    color: #4f46e5 !important;
+}
+
+.api-details ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.api-details li {
+    color: #374151 !important;
+    margin-bottom: 0.25rem;
+}
+
+.code-example {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+    overflow-x: auto;
+}
+
+.code-example h5 {
+    color: #1f2937 !important;
+    margin-bottom: 0.5rem;
+}
+
+.code-example pre {
+    margin: 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.tech-stack {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.tech-category {
+    background: #f9fafb;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.tech-category h5 {
+    color: #1f2937 !important;
+    margin-bottom: 0.5rem;
+}
+
+.tech-category ul {
+    margin: 0;
+    padding-left: 1rem;
+}
+
+.tech-category li {
+    color: #374151 !important;
+    margin-bottom: 0.25rem;
+}
+
+.file-structure {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.schema-table {
+    background: #f9fafb;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.schema-table h5 {
+    color: #1f2937 !important;
+    margin-bottom: 0.5rem;
+}
+
+.schema-table .table-schema {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.schema-table p {
+    color: #6b7280 !important;
+    font-size: 0.875rem;
+    margin: 0.25rem 0;
+}
+
+.guideline-section {
+    background: #f0f9ff;
+    border: 1px solid #0ea5e9;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.guideline-section h5 {
+    color: #0891b2 !important;
+    margin-bottom: 0.5rem;
+}
+
+.git-workflow {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.security-section {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.security-section h5 {
+    color: #d97706 !important;
+    margin-bottom: 0.5rem;
+}
+
+.optimization-tips {
+    background: #ecfdf5;
+    border: 1px solid #10b981;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.optimization-tips h5 {
+    color: #059669 !important;
+    margin-bottom: 0.5rem;
+}
+
+.troubleshooting-dev {
+    background: #fee2e2;
+    border: 1px solid #ef4444;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.troubleshooting-dev h5 {
+    color: #dc2626 !important;
+    margin-bottom: 0.5rem;
+}
+
+.solution {
+    margin-top: 0.5rem;
+}
+
+.solution strong {
+    color: #dc2626 !important;
+}
+
+.contribution-steps {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.contribution-steps h5 {
+    color: #1f2937 !important;
+    margin-bottom: 0.5rem;
+}
+
+.contribution-steps p {
+    color: #374151 !important;
+    margin-bottom: 1rem;
+}
+
+.contribution-steps pre {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 0.875rem;
+}
+
+.config-example {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.config-example h5 {
+    color: #1f2937 !important;
+    margin-bottom: 0.5rem;
+}
+
+.deployment-guide {
+    background: #f9fafb;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.deployment-guide h5 {
+    color: #1f2937 !important;
+    margin-bottom: 0.5rem;
 }
 </style>
 {% endblock %}

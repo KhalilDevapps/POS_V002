@@ -1,0 +1,1260 @@
+{% extends "base.html" %}
+
+{% block title %}Security Monitor - POS System{% endblock %}
+
+{% block head %}
+<!-- Chart.js for interactive charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Enhanced Security Monitor JavaScript -->
+<script src="{{ url_for('static', filename='js/security_monitor.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid" id="securityMonitorContainer">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading security data...</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-shield-alt text-primary me-2" aria-hidden="true"></i>
+                        Security Monitor
+                    </h1>
+                    <p class="text-muted mb-0">Monitor login attempts, security threats, and system access</p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-outline-primary" onclick="refreshSecurityData()" aria-label="Refresh security data">
+                        <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                        <span class="d-none d-sm-inline ms-1">Refresh</span>
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="exportSecurityReport()" aria-label="Export security report">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                        <span class="d-none d-sm-inline ms-1">Export</span>
+                    </button>
+                    <button class="btn btn-outline-info" onclick="toggleAdvancedFilters()" id="filterToggleBtn" aria-label="Toggle advanced filters">
+                        <i class="fas fa-filter" aria-hidden="true"></i>
+                        <span class="d-none d-sm-inline ms-1">Filters</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Filters (Hidden by default) -->
+    <div class="row mb-4" id="advancedFilters" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-filter"></i> Advanced Filters
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="securityFilters" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="dateFrom" class="form-label">From Date</label>
+                            <input type="date" class="form-control" id="dateFrom">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="dateTo" class="form-label">To Date</label>
+                            <input type="date" class="form-control" id="dateTo">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="severityFilter" class="form-label">Severity</label>
+                            <select class="form-select" id="severityFilter">
+                                <option value="">All</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="ipFilter" class="form-label">IP Address</label>
+                            <input type="text" class="form-control" id="ipFilter" placeholder="192.168.1.1">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="usernameFilter" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="usernameFilter" placeholder="admin">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary me-2">Apply Filters</button>
+                            <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Statistics -->
+    <div class="row mb-4">
+        <!-- 24 Hour Stats -->
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-clock"></i> Last 24 Hours
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Attempts
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats_24h.total_attempts }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Success Rate
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%.1f"|format(stats_24h.success_rate) }}%
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Failed Attempts
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats_24h.failed_attempts }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                CAPTCHA Required
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats_24h.captcha_required }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7 Day Stats -->
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-calendar-week"></i> Last 7 Days
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Attempts
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats_7d.total_attempts }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Success Rate
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ "%.1f"|format(stats_7d.success_rate) }}%
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Failed Attempts
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats_7d.failed_attempts }}</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Currently Blocked
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats_7d.currently_blocked }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Charts -->
+    <div class="row mb-4">
+        <div class="col-xl-8 col-lg-7 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line"></i> Login Attempts Over Time
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="loginAttemptsChart" width="100%" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-5 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-chart-pie"></i> Threat Level Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="threatLevelChart" width="100%" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Geolocation Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-globe"></i> Geographic Distribution of Login Attempts
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="geolocationChart" width="100%" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Security Metrics -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-tachometer-alt"></i> Real-time Security Metrics
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="h4 mb-0 font-weight-bold text-gray-800" id="totalAttemptsMetric">{{ stats_24h.total_attempts }}</div>
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Attempts (24h)</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="h4 mb-0 font-weight-bold text-gray-800" id="successfulLoginsMetric">{{ stats_24h.successful_logins }}</div>
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Successful Logins</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="h4 mb-0 font-weight-bold text-gray-800" id="failedAttemptsMetric">{{ stats_24h.failed_attempts }}</div>
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Failed Attempts</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="h4 mb-0 font-weight-bold text-gray-800" id="blockedIPsMetric">{{ stats_24h.currently_blocked }}</div>
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Blocked IPs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Login Attempts -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-history"></i> Recent Login Attempts (Last 24 Hours)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="attemptsTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Username</th>
+                                    <th>IP Address</th>
+                                    <th>Status</th>
+                                    <th>CAPTCHA</th>
+                                    <th>User Agent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attempt in recent_attempts %}
+                                <tr class="{% if attempt.success %}table-success{% else %}table-danger{% endif %}">
+                                    <td>{{ attempt.attempt_time.strftime('%H:%M:%S') }}</td>
+                                    <td>{{ attempt.username }}</td>
+                                    <td>{{ attempt.ip_address }}</td>
+                                    <td>
+                                        {% if attempt.success %}
+                                            <span class="badge badge-success">Success</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if attempt.captcha_required %}
+                                            {% if attempt.captcha_solved %}
+                                                <span class="badge badge-success">Solved</span>
+                                            {% else %}
+                                                <span class="badge badge-warning">Required</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-truncate" style="max-width: 200px;" title="{{ attempt.user_agent or 'N/A' }}">
+                                        {{ attempt.user_agent[:50] if attempt.user_agent else 'N/A' }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blocked IPs and Top Failed Attempts -->
+    <div class="row">
+        <!-- Blocked IPs -->
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-ban"></i> Currently Blocked IPs
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if blocked_ips %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>IP Address</th>
+                                        <th>Blocked Until</th>
+                                        <th>Reason</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for blocked_ip in blocked_ips %}
+                                    <tr>
+                                        <td>{{ blocked_ip.ip_address }}</td>
+                                        <td>{{ blocked_ip.blocked_until.strftime('%m/%d %H:%M') }}</td>
+                                        <td class="text-truncate" style="max-width: 150px;" title="{{ blocked_ip.block_reason }}">
+                                            {{ blocked_ip.block_reason[:30] if blocked_ip.block_reason else 'N/A' }}
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-success" onclick="unblockIP('{{ blocked_ip.ip_address }}')">
+                                                <i class="fas fa-unlock"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <p>No IPs are currently blocked</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Failed Attempts -->
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Top Failed Attempts (Last 24h)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- By IP -->
+                        <div class="col-6">
+                            <h6 class="text-center mb-3">By IP Address</h6>
+                            {% if failed_by_ip %}
+                                {% for ip, count in failed_by_ip[:5] %}
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-truncate" style="max-width: 100px;" title="{{ ip }}">{{ ip }}</span>
+                                    <span class="badge badge-danger">{{ count }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted text-center">No failed attempts</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- By Username -->
+                        <div class="col-6">
+                            <h6 class="text-center mb-3">By Username</h6>
+                            {% if failed_by_user %}
+                                {% for username, count in failed_by_user[:5] %}
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-truncate" style="max-width: 100px;" title="{{ username }}">{{ username }}</span>
+                                    <span class="badge badge-danger">{{ count }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted text-center">No failed attempts</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Monitor JavaScript -->
+<script>
+// Global variables for loading states
+let isLoading = false;
+
+// Refresh security data with loading indicator
+function refreshSecurityData() {
+    if (isLoading) return; // Prevent multiple simultaneous requests
+
+    const refreshBtn = document.querySelector('button[onclick="refreshSecurityData()"]');
+    const originalHTML = refreshBtn.innerHTML;
+
+    // Show loading state
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span class="d-none d-sm-inline ms-1">Loading...</span>';
+    refreshBtn.disabled = true;
+    isLoading = true;
+
+    // Show loading overlay
+    showLoadingOverlay();
+
+    try {
+        if (window.securityMonitor) {
+            window.securityMonitor.loadSecurityData().then(() => {
+                // Success - hide loading after a short delay
+                setTimeout(() => {
+                    hideLoadingOverlay();
+                    resetRefreshButton(refreshBtn, originalHTML);
+                    showSuccessMessage('Security data refreshed successfully');
+                }, 500);
+            }).catch((error) => {
+                console.error('Error refreshing data:', error);
+                hideLoadingOverlay();
+                resetRefreshButton(refreshBtn, originalHTML);
+                showErrorMessage('Failed to refresh security data. Please try again.');
+            });
+        } else {
+            // Fallback to page reload
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        }
+    } catch (error) {
+        console.error('Error in refresh function:', error);
+        hideLoadingOverlay();
+        resetRefreshButton(refreshBtn, originalHTML);
+        showErrorMessage('An unexpected error occurred. Please refresh the page.');
+    }
+}
+
+function resetRefreshButton(button, originalHTML) {
+    button.innerHTML = originalHTML;
+    button.disabled = false;
+    isLoading = false;
+}
+
+function showLoadingOverlay() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'flex';
+    }
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+function showSuccessMessage(message) {
+    // Create and show success toast
+    const toast = createToast(message, 'success');
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+function showErrorMessage(message) {
+    // Create and show error toast
+    const toast = createToast(message, 'error');
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+}
+
+function createToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    return toast;
+}
+
+function toggleAdvancedFilters() {
+    const filters = document.getElementById('advancedFilters');
+    const button = document.getElementById('filterToggleBtn');
+
+    if (!filters || !button) {
+        console.error('Filter elements not found');
+        return;
+    }
+
+    const isVisible = filters.style.display !== 'none' && filters.style.display !== '';
+
+    if (isVisible) {
+        filters.style.display = 'none';
+        button.innerHTML = '<i class="fas fa-filter"></i> <span class="d-none d-sm-inline ms-1">Filters</span>';
+        button.setAttribute('aria-expanded', 'false');
+    } else {
+        filters.style.display = 'block';
+        button.innerHTML = '<i class="fas fa-filter"></i> <span class="d-none d-sm-inline ms-1">Hide Filters</span>';
+        button.setAttribute('aria-expanded', 'true');
+
+        // Smooth scroll to filters
+        filters.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function clearFilters() {
+    // Clear all filter inputs
+    const inputs = ['dateFrom', 'dateTo', 'severityFilter', 'ipFilter', 'usernameFilter'];
+    inputs.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.value = '';
+        }
+    });
+
+    // Reload original data
+    if (window.securityMonitor) {
+        showLoadingOverlay();
+        window.securityMonitor.loadSecurityData().then(() => {
+            hideLoadingOverlay();
+            showSuccessMessage('Filters cleared and data refreshed');
+        }).catch((error) => {
+            hideLoadingOverlay();
+            showErrorMessage('Failed to reload data after clearing filters');
+        });
+    }
+}
+
+function unblockIP(ipAddress) {
+    // Create a more user-friendly confirmation dialog
+    const modal = document.createElement('div');
+    modal.className = 'modal fade show';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-unlock text-success me-2"></i>Unblock IP Address
+                    </h5>
+                    <button type="button" class="btn-close" onclick="this.closest('.modal').remove()"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to unblock IP address <strong>${ipAddress}</strong>?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        This will allow the IP address to attempt login again.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="confirmUnblockIP('${ipAddress}', this)">Unblock IP</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function confirmUnblockIP(ipAddress, button) {
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Unblocking...';
+    button.disabled = true;
+
+    fetch(`/api/unblock_ip/${ipAddress}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccessMessage(data.message);
+            // Remove modal
+            button.closest('.modal').remove();
+            // Refresh data after a short delay
+            setTimeout(() => {
+                if (window.securityMonitor) {
+                    window.securityMonitor.loadSecurityData();
+                }
+            }, 1000);
+        } else {
+            showErrorMessage('Error: ' + (data.error || 'Unknown error occurred'));
+            button.innerHTML = 'Unblock IP';
+            button.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showErrorMessage('An error occurred while unblocking the IP address.');
+        button.innerHTML = 'Unblock IP';
+        button.disabled = false;
+    });
+}
+
+function exportSecurityReport() {
+    const exportBtn = document.querySelector('button[onclick="exportSecurityReport()"]');
+    const originalHTML = exportBtn.innerHTML;
+
+    // Show loading state
+    exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span class="d-none d-sm-inline ms-1">Exporting...</span>';
+    exportBtn.disabled = true;
+
+    try {
+        const currentDate = new Date().toISOString().split('T')[0];
+        const filename = `security_report_${currentDate}.csv`;
+
+        // Create CSV content
+        let csvContent = 'Time,Username,IP Address,Status,CAPTCHA Status,User Agent\n';
+
+        // Add data from the table
+        const rows = document.querySelectorAll('#attemptsTable tbody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const rowData = Array.from(cells).map(cell => {
+                // Remove HTML tags and clean up text
+                return cell.textContent.replace(/<[^>]*>/g, '').trim();
+            });
+            csvContent += rowData.join(',') + '\n';
+        });
+
+        // Create and download the file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showSuccessMessage('Security report exported successfully');
+        } else {
+            showErrorMessage('Your browser does not support file downloads');
+        }
+    } catch (error) {
+        console.error('Export error:', error);
+        showErrorMessage('Failed to export security report');
+    } finally {
+        // Reset button state
+        exportBtn.innerHTML = originalHTML;
+        exportBtn.disabled = false;
+    }
+}
+
+// Auto-refresh every 5 minutes (but only if no manual refresh is in progress)
+setInterval(() => {
+    if (!isLoading && document.visibilityState === 'visible') {
+        if (window.securityMonitor) {
+            window.securityMonitor.loadSecurityData().catch(error => {
+                console.error('Auto-refresh error:', error);
+            });
+        }
+    }
+}, 300000);
+
+// Handle page visibility changes
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && window.securityMonitor) {
+        // Refresh data when user returns to tab
+        window.securityMonitor.loadSecurityData().catch(error => {
+            console.error('Visibility refresh error:', error);
+        });
+    }
+});
+</script>
+
+<style>
+/* Enhanced Security Monitor Styles */
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
+    z-index: 9998;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 2rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.loading-content .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    max-width: 500px;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    animation: slideInRight 0.3s ease-out;
+    margin-bottom: 1rem;
+}
+
+.toast-success {
+    background-color: #d1fae5;
+    border-left: 4px solid #10b981;
+    color: #065f46;
+}
+
+.toast-error {
+    background-color: #fee2e2;
+    border-left: 4px solid #ef4444;
+    color: #991b1b;
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.toast-content i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Enhanced Card Styles */
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-bottom: 1px solid #e3e6f0;
+    padding: 1rem 1.25rem;
+    color: #ffffff;
+}
+
+.card-header h6 {
+    margin: 0;
+    font-weight: 600;
+    color: #ffffff !important;
+}
+
+/* Enhanced Button Styles */
+.btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Enhanced Table Styles */
+.table-responsive {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background-color: #f8f9fc;
+    border-bottom: 2px solid #e9ecef;
+    font-weight: 600;
+    color: #495057;
+    padding: 1rem 0.75rem;
+    white-space: nowrap;
+}
+
+.table tbody td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fc;
+    transition: background-color 0.2s ease;
+}
+
+.table-success {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+.table-danger {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Enhanced Badge Styles */
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+}
+
+.badge-success {
+    background-color: #10b981;
+}
+
+.badge-danger {
+    background-color: #ef4444;
+}
+
+.badge-warning {
+    background-color: #f59e0b;
+}
+
+/* Enhanced Form Styles */
+.form-control, .form-select {
+    border-radius: 0.5rem;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+/* Enhanced Button Group */
+.d-flex.gap-2 > .btn {
+    margin: 0;
+}
+
+/* Responsive Design Improvements */
+@media (max-width: 768px) {
+    .d-flex.gap-2 {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+
+    .d-flex.gap-2 > .btn {
+        width: 100%;
+    }
+
+    .d-flex.gap-2 > .btn .d-none.d-sm-inline {
+        display: inline !important;
+    }
+
+    .card-body .row.text-center .col-md-3 {
+        margin-bottom: 1.5rem;
+    }
+
+    .toast {
+        left: 10px;
+        right: 10px;
+        min-width: auto;
+        max-width: none;
+    }
+
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    .table thead th,
+    .table tbody td {
+        padding: 0.5rem 0.25rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .card-header h6 {
+        font-size: 0.875rem;
+    }
+
+    .h4 {
+        font-size: 1.25rem;
+    }
+
+    .text-xs {
+        font-size: 0.75rem;
+    }
+}
+
+/* Chart Container Improvements */
+#loginAttemptsChart,
+#threatLevelChart,
+#geolocationChart {
+    max-height: 300px;
+}
+
+/* Loading States for Charts */
+.chart-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    background-color: #f8f9fc;
+    border-radius: 0.5rem;
+}
+
+.chart-loading .spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+
+/* Enhanced Modal Styles */
+.modal-content {
+    border-radius: 0.75rem;
+    border: none;
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    border-radius: 0 0 0.75rem 0.75rem;
+}
+
+/* Accessibility Improvements */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Focus States */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+}
+
+/* Animation Improvements */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Maximum Contrast - Black Text for All Content */
+* {
+    color: #000000 !important;
+}
+
+body, html {
+    color: #000000 !important;
+}
+
+.text-primary { color: #000000 !important; }
+.text-success { color: #000000 !important; }
+.text-warning { color: #000000 !important; }
+.text-danger { color: #000000 !important; }
+.text-info { color: #000000 !important; }
+.text-gray-800 { color: #000000 !important; }
+.text-muted { color: #000000 !important; }
+.text-dark { color: #000000 !important; }
+.text-secondary { color: #000000 !important; }
+.text-light { color: #f8f9fa !important; }
+.text-white { color: #ffffff !important; }
+.text-black { color: #000000 !important; }
+
+/* Ensure all text has proper contrast */
+.card-body {
+    color: #1f2937;
+}
+
+.card-body .text-xs {
+    color: inherit !important;
+}
+
+.card-body h5, .card-body h6 {
+    color: #1f2937 !important;
+}
+
+/* Fix specific text color issues */
+.h5 {
+    color: #1f2937 !important;
+}
+
+.h4 {
+    color: #1f2937 !important;
+}
+
+.text-uppercase {
+    color: inherit !important;
+}
+
+/* Ensure table text is visible */
+.table {
+    color: #1f2937;
+}
+
+.table th {
+    color: #374151 !important;
+    background-color: #f9fafb !important;
+}
+
+.table td {
+    color: #1f2937 !important;
+}
+
+/* Fix badge text colors */
+.badge {
+    color: white !important;
+}
+
+.badge-success {
+    background-color: #059669 !important;
+    color: white !important;
+}
+
+.badge-danger {
+    background-color: #dc2626 !important;
+    color: white !important;
+}
+
+.badge-warning {
+    background-color: #d97706 !important;
+    color: white !important;
+}
+
+.badge-info {
+    background-color: #0891b2 !important;
+    color: white !important;
+}
+
+/* Fix form label colors */
+.form-label {
+    color: #374151 !important;
+}
+
+/* Ensure all headings are visible */
+h1, h2, h3, h4, h5, h6 {
+    color: #1f2937 !important;
+}
+
+/* Fix specific card header text */
+.card-header h6 {
+    color: #ffffff !important;
+}
+
+/* Ensure metric values are visible */
+#totalAttemptsMetric,
+#successfulLoginsMetric,
+#failedAttemptsMetric,
+#blockedIPsMetric {
+    color: #1f2937 !important;
+    font-weight: 700 !important;
+}
+
+/* Fix loading overlay text */
+.loading-content p {
+    color: #374151 !important;
+}
+
+/* Fix toast text colors */
+.toast-success {
+    background-color: #ecfdf5;
+    border-left-color: #10b981;
+    color: #065f46 !important;
+}
+
+.toast-error {
+    background-color: #fef2f2;
+    border-left-color: #ef4444;
+    color: #991b1b !important;
+}
+
+.toast-content {
+    color: inherit !important;
+}
+
+/* Fix modal text colors */
+.modal-content {
+    color: #1f2937;
+}
+
+.modal-title {
+    color: #1f2937 !important;
+}
+
+.modal-body p {
+    color: #374151 !important;
+}
+
+/* Ensure all links are visible */
+a {
+    color: #4f46e5;
+}
+
+a:hover {
+    color: #3730a3;
+}
+
+/* Fix any remaining white text issues */
+* {
+    color: inherit;
+}
+
+/* Specific overrides for known issues */
+.text-gray-800 {
+    color: #1f2937 !important;
+}
+
+.text-muted {
+    color: #6b7280 !important;
+}
+
+/* Ensure proper contrast for all Bootstrap text utilities */
+.text-dark { color: #1f2937 !important; }
+.text-secondary { color: #6b7280 !important; }
+.text-light { color: #f9fafb !important; }
+.text-white { color: #ffffff !important; }
+.text-black { color: #000000 !important; }
+
+/* Custom Scrollbar */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Print Styles */
+@media print {
+    .btn, .loading-overlay, .toast {
+        display: none !important;
+    }
+
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+</style>
+{% endblock %}

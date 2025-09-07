@@ -1,0 +1,6 @@
+Name,Category,Buying Price,Selling Price,Quantity,Barcode,Expiry Date
+"Test Product 1","Electronics",150.00,200.00,25,,2025-12-31
+"Test Product 2","Clothing",75.50,120.00,15,,31/12/2025
+"Test Product 3","Bakery",45.00,80.00,50,,20-10-2025
+"Test Product 4","Beverages",25.00,45.00,100,,2026/01/10
+"Test Product 5","Stationery",12.50,25.00,75,,30.09.2025

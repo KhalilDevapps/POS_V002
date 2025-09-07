@@ -20,7 +20,7 @@
                         <div class="form-group">
                             <label for="app_name" class="form-label">App Name</label>
                             <input type="text" id="app_name" name="app_name" class="form-input"
-                                   value="{{ branding.app_name }}" placeholder="POS System" required>
+                                   value="{{ branding.app_name }}" placeholder="POS System">
                         </div>
 
                         <div class="form-group">
@@ -164,6 +164,153 @@
                         <label for="footer_text" class="form-label">Receipt Footer Text</label>
                         <textarea id="footer_text" name="footer_text" class="form-textarea"
                                   placeholder="Thank you for your business!">{{ branding.footer_text }}</textarea>
+                    </div>
+                </div>
+
+                <!-- Receipt Settings Section -->
+                <div class="form-section">
+                    <h3>🧾 Receipt Settings</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="receipt_return_policy" class="form-label">Return Policy Text</label>
+                            <textarea id="receipt_return_policy" name="receipt_return_policy" class="form-textarea"
+                                      placeholder="For exchanges/returns, present this receipt within 30 days.">{{ branding.receipt_return_policy }}</textarea>
+                            <small style="color: #6b7280; font-size: 0.8rem;">This text will appear on printed receipts for return/exchange policies.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="footer_text" class="form-label">Footer Text</label>
+                            <textarea id="footer_text" name="footer_text" class="form-textarea"
+                                      placeholder="Thank you for your business!">{{ branding.footer_text }}</textarea>
+                            <small style="color: #6b7280; font-size: 0.8rem;">Main footer message on receipts.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="records_message" class="form-label">Records Message</label>
+                            <textarea id="records_message" name="records_message" class="form-textarea"
+                                      placeholder="Please keep this receipt for your records.">{{ branding.records_message }}</textarea>
+                            <small style="color: #6b7280; font-size: 0.8rem;">Message about keeping receipt for records.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receipt Labels Section -->
+                <div class="form-section">
+                    <h3>🏷️ Receipt Labels & Text</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="receipt_number_label" class="form-label">Receipt Number Label</label>
+                            <input type="text" id="receipt_number_label" name="receipt_number_label" class="form-input"
+                                   value="{{ branding.receipt_number_label }}" placeholder="Receipt #:">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="date_label" class="form-label">Date Label</label>
+                            <input type="text" id="date_label" name="date_label" class="form-input"
+                                   value="{{ branding.date_label }}" placeholder="Date:">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cashier_label" class="form-label">Cashier Label</label>
+                            <input type="text" id="cashier_label" name="cashier_label" class="form-input"
+                                   value="{{ branding.cashier_label }}" placeholder="Cashier:">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="payment_method_label" class="form-label">Payment Method Label</label>
+                            <input type="text" id="payment_method_label" name="payment_method_label" class="form-input"
+                                   value="{{ branding.payment_method_label }}" placeholder="Payment Method:">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="payment_method_value" class="form-label">Payment Method Value</label>
+                            <input type="text" id="payment_method_value" name="payment_method_value" class="form-input"
+                                   value="{{ branding.payment_method_value }}" placeholder="Cash">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cash_received_label" class="form-label">Cash Received Label</label>
+                            <input type="text" id="cash_received_label" name="cash_received_label" class="form-input"
+                                   value="{{ branding.cash_received_label }}" placeholder="Cash Received:">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="change_label" class="form-label">Change Label</label>
+                            <input type="text" id="change_label" name="change_label" class="form-input"
+                                   value="{{ branding.change_label }}" placeholder="Change:">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="currency_symbol" class="form-label">Currency Symbol</label>
+                            <input type="text" id="currency_symbol" name="currency_symbol" class="form-input"
+                                   value="{{ branding.currency_symbol }}" placeholder="AFA">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receipt Table Headers Section -->
+                <div class="form-section">
+                    <h3>📊 Receipt Table Headers</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="item_header" class="form-label">Item Column Header</label>
+                            <input type="text" id="item_header" name="item_header" class="form-input"
+                                   value="{{ branding.item_header }}" placeholder="Item">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="quantity_header" class="form-label">Quantity Column Header</label>
+                            <input type="text" id="quantity_header" name="quantity_header" class="form-input"
+                                   value="{{ branding.quantity_header }}" placeholder="Qty">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="amount_header" class="form-label">Amount Column Header</label>
+                            <input type="text" id="amount_header" name="amount_header" class="form-input"
+                                   value="{{ branding.amount_header }}" placeholder="Amount">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receipt Totals Section -->
+                <div class="form-section">
+                    <h3>💰 Receipt Totals Labels</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="subtotal_label" class="form-label">Subtotal Label</label>
+                            <input type="text" id="subtotal_label" name="subtotal_label" class="form-input"
+                                   value="{{ branding.subtotal_label }}" placeholder="Subtotal:">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="discount_label" class="form-label">Discount Label</label>
+                            <input type="text" id="discount_label" name="discount_label" class="form-input"
+                                   value="{{ branding.discount_label }}" placeholder="Discount">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="total_label" class="form-label">Total Label</label>
+                            <input type="text" id="total_label" name="total_label" class="form-input"
+                                   value="{{ branding.total_label }}" placeholder="TOTAL:">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receipt Footer Branding Section -->
+                <div class="form-section">
+                    <h3>🔖 Receipt Footer Branding</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="powered_by_label" class="form-label">Powered By Label</label>
+                            <input type="text" id="powered_by_label" name="powered_by_label" class="form-input"
+                                   value="{{ branding.powered_by_label }}" placeholder="Powered by">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="version_text" class="form-label">Version Text</label>
+                            <input type="text" id="version_text" name="version_text" class="form-input"
+                                   value="{{ branding.version_text }}" placeholder="v1.0">
+                        </div>
                     </div>
                 </div>
 
@@ -476,6 +623,26 @@ function resetToDefaults() {
         document.getElementById('logo_url').value = '';
         document.getElementById('favicon_url').value = '';
         document.getElementById('footer_text').value = 'Thank you for your business!';
+
+        // Reset new receipt customization fields
+        document.getElementById('receipt_return_policy').value = 'For exchanges/returns, present this receipt within 30 days.';
+        document.getElementById('records_message').value = 'Please keep this receipt for your records.';
+        document.getElementById('receipt_number_label').value = 'Receipt #:';
+        document.getElementById('date_label').value = 'Date:';
+        document.getElementById('cashier_label').value = 'Cashier:';
+        document.getElementById('payment_method_label').value = 'Payment Method:';
+        document.getElementById('payment_method_value').value = 'Cash';
+        document.getElementById('cash_received_label').value = 'Cash Received:';
+        document.getElementById('change_label').value = 'Change:';
+        document.getElementById('currency_symbol').value = 'AFA';
+        document.getElementById('item_header').value = 'Item';
+        document.getElementById('quantity_header').value = 'Qty';
+        document.getElementById('amount_header').value = 'Amount';
+        document.getElementById('subtotal_label').value = 'Subtotal:';
+        document.getElementById('discount_label').value = 'Discount';
+        document.getElementById('total_label').value = 'TOTAL:';
+        document.getElementById('powered_by_label').value = 'Powered by';
+        document.getElementById('version_text').value = 'v1.0';
 
         // Update color previews
         document.getElementById('primary_preview').style.backgroundColor = '#6366f1';

@@ -100,6 +100,17 @@
     box-shadow: 0 6px 16px rgba(107, 114, 128, 0.3);
 }
 
+.dashboard-actions button.danger {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+}
+
+.dashboard-actions button.danger:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.3);
+}
+
 /* Enhanced Metrics Grid */
 .metrics-grid {
     display: grid;
@@ -513,6 +524,348 @@
         padding: 16px 20px;
     }
 }
+
+/* Reset System Modal Styles */
+.reset-warning-section {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.warning-icon-large {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+}
+
+.warning-icon-large .material-icons {
+    font-size: 40px;
+    color: white;
+}
+
+.warning-title {
+    color: #dc2626;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+}
+
+.warning-description {
+    color: #374151;
+    font-size: 1rem;
+    margin: 0 0 20px 0;
+    font-weight: 500;
+}
+
+.data-loss-list {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 2px solid #fecaca;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.data-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    color: #991b1b;
+    font-weight: 500;
+}
+
+.data-item .material-icons {
+    font-size: 20px;
+    color: #dc2626;
+    flex-shrink: 0;
+}
+
+.backup-reminder {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 2px solid #fde68a;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.backup-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.backup-icon .material-icons {
+    font-size: 24px;
+    color: white;
+}
+
+.backup-text {
+    flex: 1;
+    color: #92400e;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.backup-link {
+    color: #d97706;
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 2px solid #d97706;
+    transition: all 0.2s ease;
+}
+
+.backup-link:hover {
+    color: #b45309;
+    border-bottom-color: #b45309;
+}
+
+.confirmation-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.confirmation-section h4 {
+    color: #1f2937;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+}
+
+.confirmation-code {
+    background: white;
+    border: 2px solid #dc2626;
+    border-radius: 8px;
+    padding: 12px 20px;
+    margin: 15px 0;
+    display: inline-block;
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 1.1rem;
+    color: #dc2626;
+    letter-spacing: 1px;
+}
+
+.confirmation-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    text-transform: uppercase;
+    transition: all 0.2s ease;
+    background: white;
+    outline: none;
+}
+
+.confirmation-input:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    transform: translateY(-1px);
+}
+
+.confirmation-help {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 10px 0 0 0;
+    font-style: italic;
+}
+
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+}
+
+.btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Reset Progress Modal Styles */
+.progress-section {
+    text-align: center;
+}
+
+.progress-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.progress-icon .material-icons {
+    font-size: 40px;
+    color: white;
+}
+
+.progress-icon .material-icons.spinning {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.progress-section h3 {
+    color: #1f2937;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+}
+
+.progress-section p {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0 0 30px 0;
+}
+
+.progress-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.progress-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 2px solid #e5e7eb;
+    transition: all 0.3s ease;
+    opacity: 0.6;
+}
+
+.progress-step.active {
+    background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%);
+    border-color: #10b981;
+    opacity: 1;
+}
+
+.progress-step.completed {
+    background: linear-gradient(135deg, #ecfdf5 0%, #dcfce7 100%);
+    border-color: #10b981;
+    opacity: 1;
+}
+
+.progress-step .step-icon {
+    font-size: 18px;
+}
+
+.progress-step .step-text {
+    font-weight: 600;
+    color: #374151;
+    flex: 1;
+}
+
+.progress-step.active .step-text {
+    color: #059669;
+}
+
+.progress-step.completed .step-text {
+    color: #059669;
+}
+
+/* Responsive Design for Reset Modals */
+@media (max-width: 768px) {
+    .data-loss-list {
+        padding: 16px;
+    }
+
+    .backup-reminder {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .confirmation-code {
+        font-size: 1rem;
+        padding: 10px 16px;
+    }
+
+    .confirmation-input {
+        max-width: 100%;
+    }
+
+    .progress-steps {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .warning-icon-large {
+        width: 60px;
+        height: 60px;
+    }
+
+    .warning-icon-large .material-icons {
+        font-size: 30px;
+    }
+
+    .progress-icon {
+        width: 60px;
+        height: 60px;
+    }
+
+    .progress-icon .material-icons {
+        font-size: 30px;
+    }
+
+    .data-item {
+        font-size: 0.9rem;
+    }
+
+    .confirmation-section {
+        padding: 16px;
+    }
+}
 </style>
 {% endblock %}
 
@@ -534,6 +887,9 @@
                 <button class="primary" onclick="showSection('sales')">💰 Quick Sale</button>
                 <button class="primary" onclick="showSection('inventory')">➕ Add Item</button>
                 <button class="secondary" onclick="generateReport()">📊 Generate Report</button>
+                {% if current_user.has_permission('system_admin') %}
+                <button class="danger" onclick="showResetSystemModal()">🔄 Reset System</button>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -687,5 +1043,291 @@
         </div>
     </div>
 </div>
+
+<!-- Reset System Modal -->
+<div id="resetSystemModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <span class="material-icons" aria-hidden="true">warning</span>
+                </div>
+                <h2 id="resetSystemTitle" class="modal-title">⚠️ Reset System</h2>
+                <button class="modal-close" onclick="closeResetSystemModal()" aria-label="Close reset system modal">
+                    <span class="material-icons" aria-hidden="true">close</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="reset-warning-section">
+                    <div class="warning-icon-large">
+                        <span class="material-icons">delete_forever</span>
+                    </div>
+                    <h3 class="warning-title">⚠️ Critical Operation</h3>
+                    <p class="warning-description">
+                        This action will permanently delete ALL data from the system including:
+                    </p>
+
+                    <div class="data-loss-list">
+                        <div class="data-item">
+                            <span class="material-icons">inventory</span>
+                            <span>All inventory items and stock levels</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="material-icons">receipt</span>
+                            <span>All sales transactions and receipts</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="material-icons">people</span>
+                            <span>All user accounts (except default admin)</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="material-icons">category</span>
+                            <span>All product categories</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="material-icons">settings</span>
+                            <span>All system settings and branding</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="material-icons">history</span>
+                            <span>All activity logs and reports</span>
+                        </div>
+                    </div>
+
+                    <div class="backup-reminder">
+                        <div class="backup-icon">
+                            <span class="material-icons">backup</span>
+                        </div>
+                        <div class="backup-text">
+                            <strong>💡 Important:</strong> Create a backup first if you want to preserve any data.
+                            <span class="backup-link">Backup functionality has been removed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="confirmation-section">
+                    <h4>Confirmation Required</h4>
+                    <p>To proceed with the system reset, please type the following confirmation text:</p>
+                    <div class="confirmation-code">
+                        <strong>RESET ALL DATA</strong>
+                    </div>
+                    <input type="text"
+                           id="resetConfirmation"
+                           class="confirmation-input"
+                           placeholder="Type the confirmation text here"
+                           maxlength="14">
+                    <p class="confirmation-help">
+                        This ensures you understand the consequences of this action.
+                    </p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeResetSystemModal()">
+                    <span class="material-icons" aria-hidden="true">cancel</span>
+                    Cancel
+                </button>
+                <button type="button" class="btn-danger" id="confirmResetBtn" onclick="confirmSystemReset()" disabled>
+                    <span class="material-icons" aria-hidden="true">delete_forever</span>
+                    <span class="btn-text">Reset System</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Progress Modal -->
+<div id="resetProgressModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <span class="material-icons" aria-hidden="true">refresh</span>
+                </div>
+                <h2 class="modal-title">🔄 Resetting System</h2>
+            </div>
+
+            <div class="modal-body">
+                <div class="progress-section">
+                    <div class="progress-icon">
+                        <span class="material-icons spinning">refresh</span>
+                    </div>
+                    <h3>System Reset in Progress</h3>
+                    <p>Please wait while we reset the system. This may take a few moments...</p>
+
+                    <div class="progress-steps">
+                        <div class="progress-step active">
+                            <span class="step-icon">🗑️</span>
+                            <span class="step-text">Deleting all data...</span>
+                        </div>
+                        <div class="progress-step">
+                            <span class="step-icon">🔄</span>
+                            <span class="step-text">Recreating database...</span>
+                        </div>
+                        <div class="progress-step">
+                            <span class="step-icon">✅</span>
+                            <span class="step-text">Setting up defaults...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </section>
+
+<script>
+// Reset System Modal Functions
+function showResetSystemModal() {
+    document.getElementById('resetSystemModal').style.display = 'flex';
+    document.getElementById('resetConfirmation').focus();
+    document.getElementById('resetConfirmation').value = '';
+    document.getElementById('confirmResetBtn').disabled = true;
+}
+
+function closeResetSystemModal() {
+    document.getElementById('resetSystemModal').style.display = 'none';
+    document.getElementById('resetConfirmation').value = '';
+    document.getElementById('confirmResetBtn').disabled = true;
+}
+
+function confirmSystemReset() {
+    const confirmationInput = document.getElementById('resetConfirmation');
+    const confirmBtn = document.getElementById('confirmResetBtn');
+
+    if (confirmationInput.value.trim().toUpperCase() !== 'RESET ALL DATA') {
+        alert('Please type the confirmation text exactly as shown.');
+        confirmationInput.focus();
+        return;
+    }
+
+    // Disable the button to prevent double-clicks
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<span class="material-icons">hourglass_empty</span><span class="btn-text">Processing...</span>';
+
+    // Close the confirmation modal and show progress modal
+    closeResetSystemModal();
+    showResetProgressModal();
+
+    // Start the reset process
+    performSystemReset();
+}
+
+function showResetProgressModal() {
+    document.getElementById('resetProgressModal').style.display = 'flex';
+}
+
+function hideResetProgressModal() {
+    document.getElementById('resetProgressModal').style.display = 'none';
+}
+
+function performSystemReset() {
+    // Update progress steps
+    setTimeout(() => {
+        updateProgressStep(0, 'completed');
+        updateProgressStep(1, 'active');
+    }, 1000);
+
+    // Perform the actual reset
+    fetch('/reset_system', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update progress steps
+            setTimeout(() => {
+                updateProgressStep(1, 'completed');
+                updateProgressStep(2, 'active');
+            }, 500);
+
+            // Show success message and redirect
+            setTimeout(() => {
+                updateProgressStep(2, 'completed');
+                hideResetProgressModal();
+
+                alert('✅ System reset completed successfully!\n\nThe system has been reset to its default state. You will be redirected to the login page.');
+
+                // Redirect to login page
+                window.location.href = '/login';
+            }, 1000);
+        } else {
+            hideResetProgressModal();
+            alert('❌ System reset failed: ' + (data.error || 'Unknown error occurred'));
+            // Re-enable the reset button
+            document.getElementById('confirmResetBtn').disabled = false;
+            document.getElementById('confirmResetBtn').innerHTML = '<span class="material-icons">delete_forever</span><span class="btn-text">Reset System</span>';
+        }
+    })
+    .catch(error => {
+        console.error('Reset error:', error);
+        hideResetProgressModal();
+        alert('❌ Network error occurred during system reset. Please try again.');
+        // Re-enable the reset button
+        document.getElementById('confirmResetBtn').disabled = false;
+        document.getElementById('confirmResetBtn').innerHTML = '<span class="material-icons">delete_forever</span><span class="btn-text">Reset System</span>';
+    });
+}
+
+function updateProgressStep(stepIndex, status) {
+    const steps = document.querySelectorAll('.progress-step');
+    if (steps[stepIndex]) {
+        // Remove all status classes
+        steps[stepIndex].classList.remove('active', 'completed');
+
+        // Add the new status
+        if (status === 'active' || status === 'completed') {
+            steps[stepIndex].classList.add(status);
+        }
+    }
+}
+
+// Monitor confirmation input
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmationInput = document.getElementById('resetConfirmation');
+    const confirmBtn = document.getElementById('confirmResetBtn');
+
+    if (confirmationInput && confirmBtn) {
+        confirmationInput.addEventListener('input', function() {
+            const isValid = this.value.trim().toUpperCase() === 'RESET ALL DATA';
+            confirmBtn.disabled = !isValid;
+        });
+
+        // Also check on keyup for better UX
+        confirmationInput.addEventListener('keyup', function() {
+            const isValid = this.value.trim().toUpperCase() === 'RESET ALL DATA';
+            confirmBtn.disabled = !isValid;
+        });
+    }
+});
+
+// Close modals when clicking outside
+document.addEventListener('click', function(event) {
+    const resetModal = document.getElementById('resetSystemModal');
+    const progressModal = document.getElementById('resetProgressModal');
+
+    if (event.target === resetModal) {
+        closeResetSystemModal();
+    }
+
+    if (event.target === progressModal) {
+        // Don't allow closing progress modal by clicking outside
+        event.stopPropagation();
+    }
+});
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const resetModal = document.getElementById('resetSystemModal');
+        if (resetModal && resetModal.style.display === 'flex') {
+            closeResetSystemModal();
+        }
+    }
+});
+</script>
 {% endblock %}

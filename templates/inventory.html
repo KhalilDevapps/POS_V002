@@ -262,10 +262,24 @@
 <h3>Items</h3>
 <div style="margin-bottom: 10px;">
     <input type="text" id="searchInventory" placeholder="Search items..." style="padding: 8px; width: 60%; max-width: 300px;" />
+
+    <!-- Bulk Actions -->
+    <button id="bulkDeleteBtn" onclick="bulkDeleteItems()" style="margin-left: 10px; padding: 8px 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; display: none;">
+        🗑️ Delete Selected
+    </button>
     <button id="printSelectedBtn" onclick="printSelectedBarcodes()" style="margin-left: 10px; padding: 8px 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 4px; cursor: pointer; display: none;">
         🖨️ Print Selected Barcodes
     </button>
     <button id="selectAllBtn" onclick="toggleSelectAll()" style="margin-left: 10px; padding: 8px 12px;" class="info">Select All</button>
+
+    <!-- CSV Actions -->
+    <button onclick="exportToCSV()" style="margin-left: 10px; padding: 8px 12px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        📊 Export CSV
+    </button>
+    <label for="csvImport" style="margin-left: 10px; padding: 8px 12px; background: #f39c12; color: white; border-radius: 4px; cursor: pointer; display: inline-block;">
+        📤 Import CSV
+    </label>
+    <input type="file" id="csvImport" accept=".csv" style="display: none;" onchange="importFromCSV(event)">
 </div>
 
 <table id="inventoryTable" class="modern-table">
@@ -738,6 +752,413 @@ function printSelectedBarcodes() {
         console.error('Error printing barcodes:', error);
         alert('Error generating barcode labels. Please try again.');
     });
+}
+
+// Bulk deletion functionality
+function bulkDeleteItems() {
+    const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+    const selectedIds = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.value));
+
+    if (selectedIds.length === 0) {
+        alert('Please select at least one item to delete.');
+        return;
+    }
+
+    const confirmMessage = `Are you sure you want to delete ${selectedIds.length} item${selectedIds.length > 1 ? 's' : ''}? This action cannot be undone.`;
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    // Show loading state
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const originalText = bulkDeleteBtn.textContent;
+    bulkDeleteBtn.textContent = 'Deleting...';
+    bulkDeleteBtn.disabled = true;
+
+    // Delete items one by one
+    let deletedCount = 0;
+    let errors = [];
+
+    const deletePromises = selectedIds.map(itemId =>
+        fetch(`/api/items/${itemId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                deletedCount++;
+            } else {
+                errors.push(`Item ${itemId}: ${data.error || 'Unknown error'}`);
+            }
+        })
+        .catch(error => {
+            errors.push(`Item ${itemId}: ${error.message}`);
+        })
+    );
+
+    Promise.all(deletePromises).then(() => {
+        // Restore button state
+        bulkDeleteBtn.textContent = originalText;
+        bulkDeleteBtn.disabled = false;
+
+        // Show results
+        let message = `Successfully deleted ${deletedCount} item${deletedCount > 1 ? 's' : ''}.`;
+        if (errors.length > 0) {
+            message += `\n\nErrors:\n${errors.join('\n')}`;
+        }
+
+        alert(message);
+        location.reload(); // Refresh to show updated data
+    });
+}
+
+// CSV Export functionality
+function exportToCSV() {
+    // Get all items data
+    fetch('/api/items')
+        .then(response => response.json())
+        .then(items => {
+            if (items.length === 0) {
+                alert('No items to export.');
+                return;
+            }
+
+            // Create CSV content
+            const headers = ['Name', 'Category', 'Buying Price', 'Selling Price', 'Quantity', 'Barcode', 'Expiry Date'];
+            let csvContent = headers.join(',') + '\n';
+
+            items.forEach(item => {
+                const row = [
+                    `"${item.name.replace(/"/g, '""')}"`, // Escape quotes in name
+                    `"${(item.category || '').replace(/"/g, '""')}"`, // Escape quotes in category
+                    item.buying_price,
+                    item.selling_price,
+                    item.quantity,
+                    `"\t${(item.barcode || '').replace(/"/g, '""')}"`, // Force barcode as text with tab prefix
+                    item.expiry_date || ''
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `inventory_export_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            alert('CSV export completed successfully!');
+        })
+        .catch(error => {
+            console.error('Error exporting CSV:', error);
+            alert('Error exporting CSV. Please try again.');
+        });
+}
+
+// CSV Import functionality
+function importFromCSV(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const csvText = e.target.result;
+        const lines = csvText.split('\n').filter(line => line.trim());
+
+        if (lines.length < 2) {
+            alert('CSV file must contain at least a header row and one data row.');
+            return;
+        }
+
+        // Parse CSV
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        const expectedHeaders = ['Name', 'Category', 'Buying Price', 'Selling Price', 'Quantity', 'Barcode', 'Expiry Date'];
+
+        // Check if headers match (case-insensitive)
+        const headerMatch = expectedHeaders.every(expected =>
+            headers.some(header => header.toLowerCase() === expected.toLowerCase())
+        );
+
+        if (!headerMatch) {
+            alert('CSV file must contain the following columns: ' + expectedHeaders.join(', '));
+            return;
+        }
+
+        // Parse data rows
+        const items = [];
+        for (let i = 1; i < lines.length; i++) {
+            const values = parseCSVLine(lines[i]);
+            if (values.length >= 5) { // At least name, category, buying price, selling price, quantity
+                // Parse and validate expiry date
+                let expiryDate = null;
+                if (values[6] && values[6].trim()) {
+                    expiryDate = parseExpiryDate(values[6].trim());
+                }
+
+                const item = {
+                    name: values[0] || '',
+                    category: values[1] || '',
+                    buying_price: parseFloat(values[2]) || 0,
+                    selling_price: parseFloat(values[3]) || 0,
+                    quantity: parseInt(values[4]) || 0,
+                    barcode: values[5] || null, // Will be auto-generated if null
+                    expiry_date: expiryDate
+                };
+
+                if (item.name.trim()) {
+                    items.push(item);
+                }
+            }
+        }
+
+        if (items.length === 0) {
+            alert('No valid items found in CSV file.');
+            return;
+        }
+
+        // Confirm import
+        const confirmMessage = `Import ${items.length} item${items.length > 1 ? 's' : ''} from CSV? Barcodes will be auto-generated for items without them.`;
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        // Import items
+        importItems(items);
+    };
+
+    reader.readAsText(file);
+    // Reset file input
+    event.target.value = '';
+}
+
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(current.replace(/"/g, '').trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+
+    result.push(current.replace(/"/g, '').trim());
+    return result;
+}
+
+// Parse expiry date with multiple format support
+function parseExpiryDate(dateString) {
+    if (!dateString || dateString.trim() === '') {
+        return null;
+    }
+
+    const trimmed = dateString.trim();
+
+    // Try different date formats
+    const formats = [
+        // YYYY-MM-DD (ISO format)
+        /^\d{4}-\d{2}-\d{2}$/,
+        // DD/MM/YYYY
+        /^\d{1,2}\/\d{1,2}\/\d{4}$/,
+        // MM/DD/YYYY
+        /^\d{1,2}\/\d{1,2}\/\d{4}$/,
+        // DD-MM-YYYY
+        /^\d{1,2}-\d{1,2}-\d{4}$/,
+        // MM-DD-YYYY
+        /^\d{1,2}-\d{1,2}-\d{4}$/,
+        // YYYY/MM/DD
+        /^\d{4}\/\d{1,2}\/\d{1,2}$/,
+        // DD.MM.YYYY
+        /^\d{1,2}\.\d{1,2}\.\d{4}$/
+    ];
+
+    for (let format of formats) {
+        if (format.test(trimmed)) {
+            try {
+                let date;
+
+                if (trimmed.includes('/')) {
+                    // Handle slash-separated formats
+                    const parts = trimmed.split('/');
+                    if (parts.length === 3) {
+                        if (parts[2].length === 4) {
+                            // Assume DD/MM/YYYY or MM/DD/YYYY
+                            // For simplicity, assume DD/MM/YYYY if day > 12, otherwise MM/DD/YYYY
+                            const day = parseInt(parts[0]);
+                            const month = parseInt(parts[1]);
+                            const year = parseInt(parts[2]);
+
+                            if (day > 12) {
+                                // Likely DD/MM/YYYY
+                                date = new Date(year, month - 1, day);
+                            } else {
+                                // Could be either, default to MM/DD/YYYY for US format
+                                date = new Date(year, month - 1, day);
+                            }
+                        } else {
+                            // Invalid year
+                            continue;
+                        }
+                    }
+                } else if (trimmed.includes('-')) {
+                    // Handle dash-separated formats
+                    const parts = trimmed.split('-');
+                    if (parts.length === 3) {
+                        if (parts[0].length === 4) {
+                            // YYYY-MM-DD
+                            date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                        } else {
+                            // DD-MM-YYYY or MM-DD-YYYY
+                            const day = parseInt(parts[0]);
+                            const month = parseInt(parts[1]);
+                            const year = parseInt(parts[2]);
+
+                            if (day > 12) {
+                                // Likely DD-MM-YYYY
+                                date = new Date(year, month - 1, day);
+                            } else {
+                                // Could be either, default to MM-DD-YYYY
+                                date = new Date(year, month - 1, day);
+                            }
+                        }
+                    }
+                } else if (trimmed.includes('.')) {
+                    // Handle dot-separated format (DD.MM.YYYY)
+                    const parts = trimmed.split('.');
+                    if (parts.length === 3) {
+                        date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                    }
+                } else if (trimmed.length === 8 && /^\d{8}$/.test(trimmed)) {
+                    // Handle YYYYMMDD format
+                    const year = parseInt(trimmed.substring(0, 4));
+                    const month = parseInt(trimmed.substring(4, 6)) - 1;
+                    const day = parseInt(trimmed.substring(6, 8));
+                    date = new Date(year, month, day);
+                }
+
+                // Validate the date
+                if (date && !isNaN(date.getTime())) {
+                    // Check if date is reasonable (not in far future/past)
+                    const now = new Date();
+                    const minDate = new Date(2000, 0, 1);
+                    const maxDate = new Date(now.getFullYear() + 10, 11, 31);
+
+                    if (date >= minDate && date <= maxDate) {
+                        // Return in YYYY-MM-DD format
+                        return date.getFullYear() + '-' +
+                               String(date.getMonth() + 1).padStart(2, '0') + '-' +
+                               String(date.getDate()).padStart(2, '0');
+                    }
+                }
+            } catch (e) {
+                // Continue to next format
+                continue;
+            }
+        }
+    }
+
+    // If no format matched or date is invalid, return null
+    console.warn('Invalid date format:', trimmed);
+    return null;
+}
+
+function importItems(items) {
+    let importedCount = 0;
+    let errors = [];
+
+    // Show progress
+    const progressMessage = `Importing ${items.length} items...`;
+    alert(progressMessage);
+
+    const importPromises = items.map((item, index) =>
+        fetch('/api/import_item', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(item)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                importedCount++;
+            } else {
+                errors.push(`Row ${index + 2}: ${data.error || 'Unknown error'}`);
+            }
+        })
+        .catch(error => {
+            errors.push(`Row ${index + 2}: ${error.message}`);
+        })
+    );
+
+    Promise.all(importPromises).then(() => {
+        // Show results
+        let message = `Successfully imported ${importedCount} item${importedCount > 1 ? 's' : ''}.`;
+        if (errors.length > 0) {
+            message += `\n\nErrors:\n${errors.slice(0, 10).join('\n')}`;
+            if (errors.length > 10) {
+                message += `\n... and ${errors.length - 10} more errors`;
+            }
+        }
+
+        alert(message);
+        location.reload(); // Refresh to show updated data
+    });
+}
+
+// Update selected count to also handle bulk delete button
+function updateSelectedCount() {
+    const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const printBtn = document.getElementById('printSelectedBtn');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+
+    const selectedCount = selectedCheckboxes.length;
+    const totalCheckboxes = document.querySelectorAll('.item-checkbox').length;
+
+    // Show/hide bulk delete button
+    if (selectedCount > 0) {
+        bulkDeleteBtn.style.display = 'inline-block';
+        bulkDeleteBtn.textContent = `🗑️ Delete ${selectedCount} Item${selectedCount > 1 ? 's' : ''}`;
+    } else {
+        bulkDeleteBtn.style.display = 'none';
+    }
+
+    // Show/hide print button
+    if (selectedCount > 0) {
+        printBtn.style.display = 'inline-block';
+        printBtn.textContent = `🖨️ Print ${selectedCount} Barcode${selectedCount > 1 ? 's' : ''}`;
+    } else {
+        printBtn.style.display = 'none';
+    }
+
+    // Update select all checkbox state
+    if (selectedCount === 0) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = false;
+    } else if (selectedCount === totalCheckboxes) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = true;
+    } else {
+        selectAllCheckbox.indeterminate = true;
+        selectAllCheckbox.checked = false;
+    }
 }
 
 // Initialize selected count on page load

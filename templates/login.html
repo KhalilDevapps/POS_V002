@@ -79,6 +79,30 @@
                         {% endif %}
                     </div>
 
+                    <!-- CAPTCHA Section -->
+                    {% if require_captcha %}
+                    <div class="form-group captcha-group">
+                        <label for="captcha" style="font-size:14px;font-weight:500;color:#5f6368;margin-bottom:8px;display:block;">
+                            Security Check - Enter the characters shown:
+                        </label>
+                        <div style="display:flex;gap:12px;align-items:center;">
+                            <div class="captcha-display" style="background:#f8f9fa;border:2px solid #e8eaed;border-radius:8px;padding:12px;font-family:monospace;font-size:18px;font-weight:bold;letter-spacing:2px;color:#202124;min-width:120px;text-align:center;">
+                                {{ captcha_text or 'ABC123' }}
+                            </div>
+                            <div class="input-wrapper" style="flex:1;">
+                                <span class="material-icons input-icon">security</span>
+                                <input type="text" name="captcha" id="captcha" class="form-input" placeholder="Enter CAPTCHA" autocomplete="off" style="text-transform:uppercase;" required>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <button type="button" onclick="refreshCaptcha()" style="background:none;border:none;color:#1a73e8;font-size:13px;cursor:pointer;text-decoration:underline;">
+                                <span class="material-icons" style="font-size:16px;vertical-align:middle;">refresh</span>
+                                Refresh CAPTCHA
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="form-group" style="display:flex;align-items:center;justify-content:space-between;">
                         <label style="display:flex;align-items:center;font-size:14px;cursor:pointer;">
                             <input type="checkbox" name="remember" id="rememberMe" style="margin-right:8px;"> Remember Me
@@ -100,7 +124,6 @@
         </div>
     </div>
 </div>
-<style>
 <style>
 /* Login Page Styles */
 .login-toast {

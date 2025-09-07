@@ -303,46 +303,14 @@
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
-/* Scanner and Manual Entry Containers */
-#scannerContainer, #manualEntry {
+/* Scanner Container */
+#scannerContainer {
     background: white;
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     border: 1px solid #e5e7eb;
-}
-
-#manualEntry input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: all 0.2s ease;
-}
-
-#manualEntry input:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    outline: none;
-}
-
-#manualEntry button {
-    margin-top: 10px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    background: #6b7280;
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-#manualEntry button:hover {
-    background: #4b5563;
-    transform: translateY(-1px);
 }
 
 /* Cart Section Enhancement */
@@ -569,6 +537,91 @@
 
 .insufficient-cash {
     color: #dc2626;
+}
+
+/* Transaction Status */
+.transaction-status {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.status-message {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.status-message.success {
+    color: #059669;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.status-message.success::before {
+    content: "✅";
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.status-message.error {
+    color: #dc2626;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.status-message.error::before {
+    content: "❌";
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.status-details {
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 8px;
+}
+
+.status-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.status-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.status-btn.primary:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6c5b7b 100%);
+    transform: translateY(-1px);
+}
+
+.status-btn.secondary {
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    color: white;
+}
+
+.status-btn.secondary:hover {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    transform: translateY(-1px);
 }
 
 /* Enhanced Action Buttons */
@@ -1949,6 +2002,98 @@ mark {
     }
 }
 
+/* Camera Scan Section (Left Panel) */
+.camera-scan-section {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.camera-scan-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.camera-scan-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.camera-scan-header p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.camera-scan-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.manual-entry-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.manual-entry-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background: white;
+    outline: none;
+}
+
+.manual-entry-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+.manual-entry-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.manual-entry-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.manual-entry-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
 /* Integrated Scanning Interface */
 .scanning-interface {
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -2165,6 +2310,165 @@ mark {
     box-shadow: 0 6px 16px rgba(107, 114, 128, 0.3);
 }
 
+/* Top Sold Items Section */
+.top-sold-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+}
+
+.top-sold-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.top-sold-header h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.top-sold-header p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.top-sold-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.top-sold-item {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #1f2937;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.top-sold-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.top-sold-item:hover::before {
+    left: 100%;
+}
+
+.top-sold-item:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+.top-sold-item:active {
+    transform: translateY(0);
+}
+
+.top-sold-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.top-sold-name {
+    font-weight: 700;
+    font-size: 14px;
+    text-align: center;
+    color: #1f2937;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.top-sold-price {
+    font-size: 14px;
+    color: #059669;
+    font-weight: 600;
+    background: #ecfdf5;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #d1fae5;
+}
+
+.top-sold-rank {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.loading-items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 12px;
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e5e7eb;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
 /* Cart Items Section */
 .cart-items-section {
     background: white;
@@ -2252,8 +2556,8 @@ mark {
 
 .summary-row.discount-row {
     border-bottom: 2px solid #e5e7eb;
-    padding-bottom: 20px;
-    margin-bottom: 10px;
+    padding-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .summary-row.total-row {
@@ -2446,16 +2750,281 @@ mark {
     font-weight: 700;
 }
 
+/* Compact Header */
+.compact-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header-title h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.cart-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.1);
+    padding: 8px 12px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.cart-icon {
+    font-size: 18px;
+}
+
+.cart-count {
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Top Scanning Section */
+.top-scan-section {
+    background: white;
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.scan-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.scan-input-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.scan-input-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 4px;
+    transition: all 0.3s ease;
+}
+
+.scan-input-wrapper:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+.scan-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 16px;
+    color: #1f2937;
+    min-width: 0;
+}
+
+.scan-input::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+.scan-submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.scan-submit-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.scan-submit-btn .btn-icon {
+    font-size: 18px;
+    color: white;
+}
+
+.camera-scan-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.camera-scan-btn:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6c5b7b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.camera-scan-btn .btn-icon {
+    font-size: 16px;
+}
+
+.camera-scan-btn .btn-text {
+    font-weight: 600;
+}
+
+/* Main Content Layout */
+.main-content-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.right-panel {
+    position: sticky;
+    top: 100px;
+    height: fit-content;
+}
+
+/* Scanner Modal */
+.scanner-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.scanner-modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.scanner-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.scanner-modal-header h4 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.scanner-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.scanner-close-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+    transform: scale(1.1);
+}
+
+.scanner-reader {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
-    .sales-layout {
+    .main-content-layout {
         grid-template-columns: 1fr 350px;
         gap: 20px;
     }
 }
 
 @media (max-width: 768px) {
-    .sales-layout {
+    .main-content-layout {
         grid-template-columns: 1fr;
         gap: 20px;
     }
@@ -2465,87 +3034,51 @@ mark {
         order: -1;
     }
 
-    .scanner-options {
-        grid-template-columns: 1fr;
-    }
-
-    .cart-actions {
-        flex-direction: row;
-        gap: 10px;
-    }
-
-    .cart-table {
-        font-size: 14px;
-    }
-
-    .cart-table th,
-    .cart-table td {
-        padding: 12px 8px;
-    }
-
-    .summary-row {
+    .scan-input-group {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .summary-row input {
-        width: 100%;
-        max-width: 150px;
-    }
-
-    .quick-add-buttons {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 12px;
+        max-width: 100%;
     }
 
-    .quick-add-button {
-        padding: 16px 12px;
+    .scan-input-wrapper {
+        width: 100%;
     }
 
-    .quick-add-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
+    .compact-header .header-content {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
     }
 
-    .quick-add-name {
-        font-size: 14px;
+    .header-actions {
+        justify-content: center;
     }
 }
 
 @media (max-width: 480px) {
-    .sales-layout {
-        padding: 0 10px;
+    .main-content-layout {
+        padding: 20px 10px;
     }
 
-    .quick-add-buttons {
-        grid-template-columns: repeat(2, 1fr);
+    .top-scan-section {
+        padding: 16px 10px;
     }
 
-    .quick-add-section {
-        padding: 20px;
+    .compact-header {
+        padding: 10px 15px;
     }
 
-    .quick-add-section h3 {
-        font-size: 20px;
+    .header-title h1 {
+        font-size: 1.25rem;
     }
 
-    .cart-section {
-        padding: 20px;
+    .scan-input {
+        font-size: 16px;
+        padding: 10px 12px;
     }
 
-    .cart-header h3 {
-        font-size: 18px;
-    }
-
-    .cart-actions {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .action-btn {
-        padding: 12px 16px;
+    .camera-scan-btn {
+        padding: 10px 16px;
         font-size: 13px;
     }
 }
@@ -2554,93 +3087,74 @@ mark {
 
 {% block content %}
 
+<!-- Compact Header -->
+<div class="compact-header">
+    <div class="header-content">
+        <div class="header-title">
+            <h1>🛒 POS Sales</h1>
+        </div>
+        <div class="header-actions">
+            <div class="cart-status">
+                <span class="cart-icon">🛒</span>
+                <span class="cart-count" id="headerCartBadge">0</span>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- Redesigned Sales Layout -->
-<div class="sales-layout">
-    <!-- [2] LEFT PANEL -->
+<!-- Top Scanning Section -->
+<div class="top-scan-section">
+    <div class="scan-container">
+        <div class="scan-input-group">
+            <div class="scan-input-wrapper">
+                <input type="text" id="manualBarcode" class="scan-input" placeholder="Enter barcode or scan..." onkeypress="handleManualEntry(event)">
+                <button class="scan-submit-btn" onclick="addManualBarcode()">
+                    <span class="btn-icon">➕</span>
+                </button>
+            </div>
+            <button class="camera-scan-btn" onclick="startScanner()">
+                <span class="btn-icon">📷</span>
+                <span class="btn-text">Scan</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Layout -->
+<div class="main-content-layout">
+    <!-- Left Panel - Top Items -->
     <div class="left-panel">
-
-
-
+        <div class="top-sold-section">
+            <div class="top-sold-header">
+                <h3>🔥 Top Items</h3>
+            </div>
+            <div class="top-sold-items" id="topSoldItems">
+                <div class="loading-items">
+                    <div class="loading-spinner"></div>
+                    <div class="loading-text">Loading...</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- [5] RIGHT PANEL -->
+    <!-- Right Panel - Cart -->
     <div class="right-panel">
-        <!-- [6] CART SECTION -->
         <div class="cart-section">
-            <!-- [7] CART HEADER -->
             <div class="cart-header">
-                <h3>🛒 Shopping Cart</h3>
+                <h3>Cart</h3>
                 <div class="cart-badge" id="cartBadge">0</div>
             </div>
 
-            <!-- [8] INTEGRATED SCANNING INTERFACE -->
-            <div class="scanning-interface">
-                <!-- [9] SCANNING HEADER -->
-                <div class="scanning-header">
-                    <h4>📱 Add Items to Cart</h4>
-                    <p>Scan barcode or enter manually</p>
-                </div>
-
-                <!-- [10] SCANNING OPTIONS -->
-                <div class="scanning-options">
-                    <button class="scan-btn camera-btn" onclick="startScanner()">
-                        <span class="btn-icon">📷</span>
-                        <span class="btn-text">Scan Camera</span>
-                    </button>
-                    <button class="scan-btn manual-btn" onclick="manualBarcodeEntry()">
-                        <span class="btn-icon">⌨️</span>
-                        <span class="btn-text">Enter Manual</span>
-                    </button>
-                </div>
-
-                <!-- Scanner Container -->
-                <div id="scannerContainer" class="scanner-container" style="display:none;">
-                    <div class="scanner-wrapper">
-                        <div id="reader" class="scanner-reader"></div>
-                        <div class="scanner-controls">
-                            <button class="scan-cancel-btn" onclick="stopScanner()">
-                                <span class="btn-icon">❌</span>
-                                <span class="btn-text">Cancel Scan</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Manual Entry -->
-                <div id="manualEntry" class="manual-entry-container" style="display:none;">
-                    <div class="manual-entry-wrapper">
-                        <input type="text"
-                               id="manualBarcode"
-                               placeholder="Enter barcode or item name"
-                               class="manual-input"
-                               autocomplete="off" />
-                        <div class="manual-controls">
-                            <button class="manual-add-btn" onclick="processManualBarcode()">
-                                <span class="btn-icon">➕</span>
-                                <span class="btn-text">Add to Cart</span>
-                            </button>
-                            <button class="manual-cancel-btn" onclick="closeManualEntry()">
-                                <span class="btn-icon">✕</span>
-                                <span class="btn-text">Cancel</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- [11] CART ITEMS DISPLAY -->
             <div class="cart-items-section">
                 <div id="cartItems">
                     <div class="empty-cart">
                         <div class="empty-cart-icon">🛒</div>
-                        <div class="empty-cart-text">Your cart is empty</div>
-                        <div class="empty-cart-subtext">Use the scanning options above to add items</div>
+                        <div class="empty-cart-text">Cart is empty</div>
+                        <div class="empty-cart-subtext">Scan or enter barcode above</div>
                     </div>
                 </div>
             </div>
 
-            <!-- [12] CART SUMMARY -->
             <div class="cart-summary" id="cartSummary" style="display:none;">
                 <div class="summary-section">
                     <div class="summary-row">
@@ -2660,16 +3174,15 @@ mark {
                     </div>
                 </div>
 
-                <!-- [13] PAYMENT SECTION -->
                 <div class="payment-section">
                     <div class="payment-input-group">
-                        <label class="payment-label">💰 Cash Received:</label>
+                        <label class="payment-label">Cash Received:</label>
                         <input type="number" id="cashReceived" min="0" step="0.01" placeholder="0.00" onchange="calculateChange()" class="payment-input" />
                     </div>
 
                     <div class="change-display">
                         <div class="change-row" id="changeRow" style="display: none;">
-                            <span class="change-label">💸 Change:</span>
+                            <span class="change-label">Change:</span>
                             <span id="changeAmount" class="change-value">0 AFA</span>
                         </div>
                         <div class="insufficient-cash" id="insufficientCash" style="display: none;">
@@ -2679,22 +3192,34 @@ mark {
                 </div>
             </div>
 
-            <!-- [14] ACTION BUTTONS -->
+            <!-- Transaction Status Message -->
+            <div class="transaction-status" id="transactionStatus" style="display: none;">
+                <div class="status-message" id="statusMessage"></div>
+                <div class="status-actions" id="statusActions"></div>
+            </div>
+
             <div class="cart-actions">
                 <button class="action-btn success" onclick="completeSale()" id="completeBtn" disabled>
                     <span class="btn-icon">✅</span>
-                    <span class="btn-text">Complete Sale</span>
+                    <span class="btn-text">Complete</span>
                 </button>
                 <button class="action-btn secondary" onclick="clearCart()" id="clearBtn" disabled>
                     <span class="btn-icon">🗑️</span>
-                    <span class="btn-text">Clear Cart</span>
-                </button>
-                <button class="action-btn info" onclick="printReceipt()" id="printBtn" disabled>
-                    <span class="btn-icon">🖨️</span>
-                    <span class="btn-text">Print Receipt</span>
+                    <span class="btn-text">Clear</span>
                 </button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Scanner Modal -->
+<div id="scannerModal" class="scanner-modal-overlay" style="display:none;">
+    <div class="scanner-modal-content">
+        <div class="scanner-modal-header">
+            <h4>📷 Camera Scanner</h4>
+            <button class="scanner-close-btn" onclick="stopScanner()">✕</button>
+        </div>
+        <div id="reader" class="scanner-reader"></div>
     </div>
 </div>
 
@@ -3522,6 +4047,7 @@ mark {
 <script>
 let cart = [];
 let scanner = null;
+let isProcessingTransaction = false;
 
 // Load cart from localStorage
 function loadCart() {
@@ -3538,8 +4064,7 @@ function saveCart() {
 }
 
 function startScanner() {
-    document.getElementById('manualEntry').style.display = 'none';
-    document.getElementById('scannerContainer').style.display = 'block';
+    document.getElementById('scannerModal').style.display = 'flex';
 
     if (scanner) {
         try { scanner.stop(); scanner.clear(); } catch (e) {}
@@ -3575,31 +4100,35 @@ function stopScanner() {
         return scanner.stop()
             .then(() => {
                 scanner.clear();
-                document.getElementById('scannerContainer').style.display = 'none';
+                document.getElementById('scannerModal').style.display = 'none';
             })
-            .catch(() => { document.getElementById('scannerContainer').style.display = 'none'; });
+            .catch(() => { document.getElementById('scannerModal').style.display = 'none'; });
     } else {
-        document.getElementById('scannerContainer').style.display = 'none';
+        document.getElementById('scannerModal').style.display = 'none';
     }
 }
 
-function manualBarcodeEntry() {
-    stopScanner();
-    document.getElementById('manualEntry').style.display = 'block';
-    document.getElementById('manualBarcode').focus();
+
+
+function handleManualEntry(event) {
+    if (event.key === 'Enter') {
+        addManualBarcode();
+    }
 }
 
-function processManualBarcode() {
-    const code = document.getElementById('manualBarcode').value.trim();
-    if (!code) return alert('Enter a barcode');
-    addToCart(code);
-    document.getElementById('manualBarcode').value = '';
-    document.getElementById('manualBarcode').focus();
-}
+function addManualBarcode() {
+    const barcodeInput = document.getElementById('manualBarcode');
+    const barcode = barcodeInput.value.trim();
 
-function closeManualEntry() {
-    document.getElementById('manualEntry').style.display = 'none';
-    document.getElementById('manualBarcode').value = '';
+    if (!barcode) {
+        alert('Please enter a barcode');
+        barcodeInput.focus();
+        return;
+    }
+
+    addToCart(barcode);
+    barcodeInput.value = '';
+    barcodeInput.focus();
 }
 
 function addToCart(code) {
@@ -3640,14 +4169,18 @@ function renderCart() {
     const cartSummary = document.getElementById('cartSummary');
     const completeBtn = document.getElementById('completeBtn');
     const clearBtn = document.getElementById('clearBtn');
-    const printBtn = document.getElementById('printBtn');
     const cartBadge = document.getElementById('cartBadge');
+    const headerCartBadge = document.getElementById('headerCartBadge');
 
-    // Update cart badge
+    // Update cart badges
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     if (cartBadge) {
         cartBadge.textContent = totalItems;
         cartBadge.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
+    if (headerCartBadge) {
+        headerCartBadge.textContent = totalItems;
+        headerCartBadge.style.display = totalItems > 0 ? 'inline-flex' : 'none';
     }
 
     if (cart.length === 0) {
@@ -3661,7 +4194,6 @@ function renderCart() {
         cartSummary.style.display = 'none';
         completeBtn.disabled = true;
         clearBtn.disabled = true;
-        printBtn.disabled = true;
         return;
     }
 
@@ -3704,7 +4236,6 @@ function renderCart() {
     cartSummary.style.display = 'block';
     completeBtn.disabled = false;
     clearBtn.disabled = false;
-    printBtn.disabled = false;
 
     calculateTotal();
 }
@@ -3719,19 +4250,15 @@ function changeQty(i, d) {
 }
 
 function removeFromCart(i) {
-    if (confirm(`Remove ${cart[i].name} from cart?`)) {
-        cart.splice(i, 1);
-        saveCart();
-        renderCart();
-    }
+    cart.splice(i, 1);
+    saveCart();
+    renderCart();
 }
 
 function clearCart() {
-    if (confirm('Clear all items from cart?')) {
-        cart = [];
-        saveCart();
-        renderCart();
-    }
+    cart = [];
+    saveCart();
+    renderCart();
 }
 
 function calculateTotal() {
@@ -3776,7 +4303,16 @@ function calculateChange() {
 }
 
 function completeSale() {
-    if (cart.length === 0) return alert('Cart is empty');
+    // Prevent double-clicking during transaction processing
+    if (isProcessingTransaction) {
+        showTransactionStatus('error', 'Transaction Already Processing', 'Please wait for the current transaction to complete before starting a new one.');
+        return;
+    }
+
+    if (cart.length === 0) {
+        showTransactionStatus('error', 'Cart is empty');
+        return;
+    }
 
     const discountPercent = parseFloat(document.getElementById('discountPercent').value) || 0;
     const cashReceived = parseFloat(document.getElementById('cashReceived').value) || 0;
@@ -3784,12 +4320,23 @@ function completeSale() {
 
     // Validate payment
     if (cashReceived < total) {
-        alert('Cash received is less than total amount!');
+        showTransactionStatus('error', 'Cash received is less than total amount!');
         document.getElementById('cashReceived').focus();
         return;
     }
 
     const change = cashReceived - total;
+
+    // Set processing flag and disable button
+    isProcessingTransaction = true;
+    const completeBtn = document.getElementById('completeBtn');
+    if (completeBtn) {
+        completeBtn.disabled = true;
+        completeBtn.innerHTML = '<span class="btn-icon">⏳</span><span class="btn-text">Processing...</span>';
+    }
+
+    // Show processing status
+    showTransactionStatus('processing', 'Processing transaction...');
 
     fetch('/api/complete_sale', {
         method: 'POST',
@@ -3806,29 +4353,118 @@ function completeSale() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Show change amount in alert
-            let message = data.message + '\n\nReceipt Number: ' + data.receipt_number;
+            // Show success message with details
+            let message = data.message;
+            let details = `Receipt Number: ${data.receipt_number}`;
             if (change > 0) {
-                message += '\n\nChange to return: ' + formatNumber(change) + ' AFA';
+                details += `<br>Change to return: ${formatNumber(change)} AFA`;
             }
 
-            alert(message);
-
-            // Open receipt in new window
-            const receiptWindow = window.open('/print_receipt/' + data.sale_id, '_blank', 'width=600,height=800');
-
-            // Clear cart after successful sale
-            cart = [];
-            saveCart();
-            renderCart();
+            showTransactionStatus('success', message, details, data.sale_id);
         } else {
-            alert('Error: ' + data.error);
+            showTransactionStatus('error', 'Transaction Failed', data.error);
         }
     })
     .catch(error => {
         console.error('Error completing sale:', error);
-        alert('Error completing sale');
+        showTransactionStatus('error', 'Transaction Failed', 'Network error occurred');
+    })
+    .finally(() => {
+        // Reset processing flag and re-enable button
+        isProcessingTransaction = false;
+        if (completeBtn) {
+            completeBtn.disabled = false;
+            completeBtn.innerHTML = '<span class="btn-icon">✅</span><span class="btn-text">Complete</span>';
+        }
     });
+}
+
+function showTransactionStatus(type, title, details = '', saleId = null) {
+    const statusDiv = document.getElementById('transactionStatus');
+    const messageDiv = document.getElementById('statusMessage');
+    const actionsDiv = document.getElementById('statusActions');
+
+    // Clear previous content
+    messageDiv.innerHTML = '';
+    actionsDiv.innerHTML = '';
+
+    // Set message content
+    let messageClass = 'status-message';
+    let icon = '';
+
+    if (type === 'success') {
+        messageClass += ' success';
+        icon = '✅';
+    } else if (type === 'error') {
+        messageClass += ' error';
+        icon = '❌';
+    } else if (type === 'processing') {
+        messageClass += ' success'; // Use success styling for processing
+        icon = '⏳';
+    }
+
+    messageDiv.className = messageClass;
+    messageDiv.innerHTML = `
+        <div class="status-title">${icon} ${title}</div>
+        ${details ? `<div class="status-details">${details}</div>` : ''}
+    `;
+
+    // Set actions based on type
+    if (type === 'success' && saleId) {
+        actionsDiv.innerHTML = `
+            <button class="status-btn primary" onclick="viewBill('${saleId}')">
+                <span>🧾</span>
+                <span>View Bill</span>
+            </button>
+            <button class="status-btn secondary" onclick="newTransaction()">
+                <span>➕</span>
+                <span>New Transaction</span>
+            </button>
+        `;
+    } else if (type === 'error') {
+        actionsDiv.innerHTML = `
+            <button class="status-btn secondary" onclick="hideTransactionStatus()">
+                <span>✕</span>
+                <span>Close</span>
+            </button>
+        `;
+    }
+
+    // Show the status div
+    statusDiv.style.display = 'block';
+
+    // Auto-hide success messages after 10 seconds
+    if (type === 'success') {
+        setTimeout(() => {
+            hideTransactionStatus();
+        }, 10000);
+    }
+}
+
+function viewBill(saleId) {
+    const receiptWindow = window.open('/print_receipt/' + saleId, '_blank', 'width=600,height=800');
+    if (!receiptWindow) {
+        alert('Please allow popups for this site to view the bill');
+    }
+}
+
+function newTransaction() {
+    // Clear cart
+    cart = [];
+    saveCart();
+    renderCart();
+
+    // Reset form
+    document.getElementById('discountPercent').value = '0';
+    document.getElementById('cashReceived').value = '';
+
+    // Hide status
+    hideTransactionStatus();
+}
+
+function hideTransactionStatus() {
+    const statusDiv = document.getElementById('transactionStatus');
+    statusDiv.style.display = 'none';
 }
 
 function printReceipt() {
@@ -4084,16 +4720,49 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+function loadTopSoldItems() {
+    const topSoldContainer = document.getElementById('topSoldItems');
+
+    fetch('/api/top_sold_items')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.items && data.items.length > 0) {
+                let html = '';
+
+                data.items.forEach((item, index) => {
+                    const rank = index + 1;
+                    html += `
+                        <div class="top-sold-item" onclick="addToCart('${item.barcode}')">
+                            <div class="top-sold-rank">${rank}</div>
+                            <div class="top-sold-icon">${item.name.charAt(0).toUpperCase()}</div>
+                            <div class="top-sold-name">${item.name}</div>
+                            <div class="top-sold-price">${formatNumber(item.selling_price)} AFA</div>
+                        </div>
+                    `;
+                });
+
+                topSoldContainer.innerHTML = html;
+            } else {
+                topSoldContainer.innerHTML = `
+                    <div class="loading-items">
+                        <div class="loading-text">No sales data available</div>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading top sold items:', error);
+            topSoldContainer.innerHTML = `
+                <div class="loading-items">
+                    <div class="loading-text">Error loading top items</div>
+                </div>
+            `;
+        });
+}
+
 // Initialize cart on page load
 loadCart();
-
-// Manual barcode enter on Enter key
-document.getElementById('manualBarcode').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        processManualBarcode();
-    }
-});
+loadTopSoldItems();
 });
 </script>
 {% endblock %}

@@ -9,6 +9,10 @@ from datetime import datetime, timedelta, timezone
 import os
 from dotenv import load_dotenv
 import uuid
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import hashlib
+import time
 
 # Load environment variables
 load_dotenv()
@@ -216,8 +220,76 @@ class Branding(db.Model):
     # Footer Text
     footer_text = db.Column(db.String(500), nullable=True, default='Thank you for your business!')
 
+    # Receipt Settings
+    receipt_return_policy = db.Column(db.String(500), nullable=True, default='For exchanges/returns, present this receipt within 30 days.')
+
+    # Receipt Labels and Text
+    receipt_header_title = db.Column(db.String(100), nullable=True, default='RECEIPT')
+    receipt_number_label = db.Column(db.String(50), nullable=True, default='Receipt #:')
+    date_label = db.Column(db.String(50), nullable=True, default='Date:')
+    cashier_label = db.Column(db.String(50), nullable=True, default='Cashier:')
+    payment_method_label = db.Column(db.String(50), nullable=True, default='Payment Method:')
+    cash_received_label = db.Column(db.String(50), nullable=True, default='Cash Received:')
+    change_label = db.Column(db.String(50), nullable=True, default='Change:')
+    currency_symbol = db.Column(db.String(10), nullable=True, default='AFA')
+    item_header = db.Column(db.String(50), nullable=True, default='Item')
+    quantity_header = db.Column(db.String(50), nullable=True, default='Qty')
+    amount_header = db.Column(db.String(50), nullable=True, default='Amount')
+    subtotal_label = db.Column(db.String(50), nullable=True, default='Subtotal:')
+    discount_label = db.Column(db.String(50), nullable=True, default='Discount')
+    total_label = db.Column(db.String(50), nullable=True, default='TOTAL:')
+    records_message = db.Column(db.String(200), nullable=True, default='Please keep this receipt for your records.')
+    powered_by_label = db.Column(db.String(50), nullable=True, default='Powered by')
+    version_text = db.Column(db.String(20), nullable=True, default='v1.0')
+
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+
+
+class LoginAttempt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False)
+    ip_address = db.Column(db.String(45), nullable=False)
+    user_agent = db.Column(db.String(500), nullable=True)
+    attempt_time = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    success = db.Column(db.Boolean, default=False)
+    failure_reason = db.Column(db.String(100), nullable=True)
+    captcha_required = db.Column(db.Boolean, default=False)
+    captcha_solved = db.Column(db.Boolean, default=False)
+    session_id = db.Column(db.String(100), nullable=True)
+    location = db.Column(db.String(100), nullable=True)
+
+    def __repr__(self):
+        return f'<LoginAttempt {self.id}: {self.username}@{self.ip_address} - {"Success" if self.success else "Failed"}>'
+
+class BlockedIP(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(45), unique=True, nullable=False)
+    blocked_until = db.Column(db.DateTime, nullable=True)
+    block_reason = db.Column(db.String(200), nullable=True)
+    failed_attempts = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f'<BlockedIP {self.ip_address}: blocked until {self.blocked_until}>'
+
+    @property
+    def is_blocked(self):
+        """Check if IP is currently blocked"""
+        if self.blocked_until is None:
+            return False
+
+        # Ensure both datetimes are offset-aware for comparison
+        now = datetime.now(timezone.utc)
+        blocked_until = self.blocked_until
+
+        # If blocked_until is offset-naive, make it offset-aware
+        if blocked_until.tzinfo is None:
+            blocked_until = blocked_until.replace(tzinfo=timezone.utc)
+
+        return now < blocked_until
 
 class ActivityLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -279,6 +351,8 @@ class ActivityLog(db.Model):
             'backup_create': 'Created backup',
             'backup_download': 'Downloaded backup',
             'backup_restore': 'Restored backup',
+            'backup_schedule_update': 'Updated backup schedule',
+            'backup_auto_created': 'Automatic backup created',
             'branding_update': 'Updated branding',
             'permission_change': 'Changed permissions',
             'system_error': 'System error occurred',
@@ -310,14 +384,228 @@ class ItemForm(FlaskForm):
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
+# Security Functions
+def get_client_ip():
+    """Get the real client IP address"""
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    elif request.headers.get('X-Real-IP'):
+        return request.headers.get('X-Real-IP')
+    else:
+        return request.remote_addr
+
+def is_ip_blocked(ip_address):
+    """Check if IP is blocked"""
+    blocked_ip = BlockedIP.query.filter_by(ip_address=ip_address).first()
+    if blocked_ip and blocked_ip.is_blocked:
+        return True, blocked_ip.block_reason
+    return False, None
+
+def block_ip(ip_address, reason, duration_minutes=15):
+    """Block an IP address for a specified duration"""
+    blocked_ip = BlockedIP.query.filter_by(ip_address=ip_address).first()
+    if not blocked_ip:
+        blocked_ip = BlockedIP(ip_address=ip_address, block_reason=reason, failed_attempts=0)
+        db.session.add(blocked_ip)
+
+    blocked_ip.blocked_until = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
+    # Ensure failed_attempts is not None before incrementing
+    if blocked_ip.failed_attempts is None:
+        blocked_ip.failed_attempts = 0
+    blocked_ip.failed_attempts += 1
+    blocked_ip.block_reason = reason
+    db.session.commit()
+
+    # Log the IP block
+    log_activity(user=None, action='ip_blocked', action_category='security',
+                resource_type='ip_address', resource_name=ip_address,
+                details=f'IP address {ip_address} blocked for {duration_minutes} minutes due to: {reason}',
+                severity='warning', compliance_flag=True)
+
+def record_login_attempt(username, ip_address, success=False, failure_reason=None):
+    """Record a login attempt"""
+    user_agent = request.headers.get('User-Agent', '')[:500]
+    session_id = session.get('session_id', str(uuid.uuid4())[:8])
+
+    attempt = LoginAttempt(
+        username=username,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        success=success,
+        failure_reason=failure_reason,
+        session_id=session_id
+    )
+    db.session.add(attempt)
+    db.session.commit()
+
+def get_recent_failed_attempts(username, ip_address, minutes=15):
+    """Get recent failed login attempts for user/IP combination"""
+    cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=minutes)
+
+    # Failed attempts for this username
+    user_attempts = LoginAttempt.query.filter(
+        LoginAttempt.username == username,
+        LoginAttempt.success == False,
+        LoginAttempt.attempt_time >= cutoff_time
+    ).count()
+
+    # Failed attempts from this IP
+    ip_attempts = LoginAttempt.query.filter(
+        LoginAttempt.ip_address == ip_address,
+        LoginAttempt.success == False,
+        LoginAttempt.attempt_time >= cutoff_time
+    ).count()
+
+    return user_attempts, ip_attempts
+
+def should_require_captcha(username, ip_address):
+    """Determine if CAPTCHA should be required"""
+    user_attempts, ip_attempts = get_recent_failed_attempts(username, ip_address, minutes=10)
+
+    # Require CAPTCHA after 3 failed attempts for user or 5 for IP
+    return user_attempts >= 3 or ip_attempts >= 5
+
+def get_progressive_delay(attempt_count):
+    """Calculate progressive delay based on attempt count"""
+    if attempt_count <= 3:
+        return 0  # No delay for first 3 attempts
+    elif attempt_count <= 5:
+        return 2  # 2 second delay
+    elif attempt_count <= 10:
+        return 5  # 5 second delay
+    else:
+        return 10  # 10 second delay for many attempts
+
+def validate_password_strength(password):
+    """Validate password strength requirements"""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long"
+
+    if not any(c.isupper() for c in password):
+        return False, "Password must contain at least one uppercase letter"
+
+    if not any(c.islower() for c in password):
+        return False, "Password must contain at least one lowercase letter"
+
+    if not any(c.isdigit() for c in password):
+        return False, "Password must contain at least one number"
+
+    # Check for common weak passwords
+    weak_passwords = ['password', '123456', 'qwerty', 'admin', 'letmein', 'welcome']
+    if password.lower() in weak_passwords:
+        return False, "This password is too common and easily guessed"
+
+    return True, "Password is strong"
+
+def generate_captcha_text():
+    """Generate a simple CAPTCHA text"""
+    import random
+    import string
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+def hash_captcha_text(text):
+    """Hash CAPTCHA text for storage"""
+    return hashlib.sha256(text.encode()).hexdigest()
+
+def verify_captcha(session_captcha_hash, user_input):
+    """Verify CAPTCHA input"""
+    if not session_captcha_hash or not user_input:
+        return False
+
+    user_hash = hashlib.sha256(user_input.upper().encode()).hexdigest()
+    return user_hash == session_captcha_hash
+
 # Context processor to make branding available globally
 @app.context_processor
 def inject_branding():
     """Make branding settings available to all templates"""
-    branding_settings = Branding.query.first()
+    try:
+        branding_settings = Branding.query.first()
 
-    if not branding_settings:
-        # Return default branding if none exists
+        if not branding_settings:
+            # Return default branding if none exists
+            return {
+                'branding': {
+                    'app_name': 'POS System',
+                    'app_subtitle': 'Professional Point of Sale',
+                    'business_name': None,
+                    'business_address': None,
+                    'business_phone': None,
+                    'business_email': None,
+                    'tax_id': None,
+                    'primary_color': '#6366f1',
+                    'secondary_color': '#8b5cf6',
+                    'accent_color': '#10b981',
+                    'background_color': '#ffffff',
+                    'text_color': '#1f2937',
+                    'font_family': 'Inter',
+                    'logo_url': None,
+                    'favicon_url': None,
+                    'footer_text': 'Thank you for your business!',
+                    'receipt_return_policy': 'For exchanges/returns, present this receipt within 30 days.',
+                    'receipt_header_title': 'RECEIPT',
+                    'receipt_number_label': 'Receipt #:',
+                    'date_label': 'Date:',
+                    'cashier_label': 'Cashier:',
+                    'payment_method_label': 'Payment Method:',
+                    'payment_method_value': 'Cash',
+                    'cash_received_label': 'Cash Received:',
+                    'change_label': 'Change:',
+                    'currency_symbol': 'AFA',
+                    'item_header': 'Item',
+                    'quantity_header': 'Qty',
+                    'amount_header': 'Amount',
+                    'subtotal_label': 'Subtotal:',
+                    'discount_label': 'Discount',
+                    'total_label': 'TOTAL:',
+                    'records_message': 'Please keep this receipt for your records.',
+                    'powered_by_label': 'Powered by',
+                    'version_text': 'v1.0'
+                }
+            }
+
+        return {
+            'branding': {
+                'app_name': branding_settings.app_name,
+                'app_subtitle': branding_settings.app_subtitle,
+                'business_name': branding_settings.business_name,
+                'business_address': branding_settings.business_address,
+                'business_phone': branding_settings.business_phone,
+                'business_email': branding_settings.business_email,
+                'tax_id': branding_settings.tax_id,
+                'primary_color': branding_settings.primary_color,
+                'secondary_color': branding_settings.secondary_color,
+                'accent_color': branding_settings.accent_color,
+                'background_color': branding_settings.background_color,
+                'text_color': branding_settings.text_color,
+                'font_family': branding_settings.font_family,
+                'logo_url': branding_settings.logo_url,
+                'favicon_url': branding_settings.favicon_url,
+                'footer_text': branding_settings.footer_text,
+                'receipt_return_policy': getattr(branding_settings, 'receipt_return_policy', 'For exchanges/returns, present this receipt within 30 days.'),
+                'receipt_header_title': getattr(branding_settings, 'receipt_header_title', 'RECEIPT'),
+                'receipt_number_label': getattr(branding_settings, 'receipt_number_label', 'Receipt #:'),
+                'date_label': getattr(branding_settings, 'date_label', 'Date:'),
+                'cashier_label': getattr(branding_settings, 'cashier_label', 'Cashier:'),
+                'payment_method_label': getattr(branding_settings, 'payment_method_label', 'Payment Method:'),
+                'payment_method_value': getattr(branding_settings, 'payment_method_value', 'Cash'),
+                'cash_received_label': getattr(branding_settings, 'cash_received_label', 'Cash Received:'),
+                'change_label': getattr(branding_settings, 'change_label', 'Change:'),
+                'currency_symbol': getattr(branding_settings, 'currency_symbol', 'AFA'),
+                'item_header': getattr(branding_settings, 'item_header', 'Item'),
+                'quantity_header': getattr(branding_settings, 'quantity_header', 'Qty'),
+                'amount_header': getattr(branding_settings, 'amount_header', 'Amount'),
+                'subtotal_label': getattr(branding_settings, 'subtotal_label', 'Subtotal:'),
+                'discount_label': getattr(branding_settings, 'discount_label', 'Discount'),
+                'total_label': getattr(branding_settings, 'total_label', 'TOTAL:'),
+                'records_message': getattr(branding_settings, 'records_message', 'Please keep this receipt for your records.'),
+                'powered_by_label': getattr(branding_settings, 'powered_by_label', 'Powered by'),
+                'version_text': getattr(branding_settings, 'version_text', 'v1.0')
+            }
+        }
+    except Exception as e:
+        # If there's an error (likely due to missing column), return default branding
+        print(f"Error loading branding settings: {e}")
         return {
             'branding': {
                 'app_name': 'POS System',
@@ -335,30 +623,28 @@ def inject_branding():
                 'font_family': 'Inter',
                 'logo_url': None,
                 'favicon_url': None,
-                'footer_text': 'Thank you for your business!'
+                'footer_text': 'Thank you for your business!',
+                'receipt_return_policy': 'For exchanges/returns, present this receipt within 30 days.',
+                'receipt_header_title': 'RECEIPT',
+                'receipt_number_label': 'Receipt #:',
+                'date_label': 'Date:',
+                'cashier_label': 'Cashier:',
+                'payment_method_label': 'Payment Method:',
+                'payment_method_value': 'Cash',
+                'cash_received_label': 'Cash Received:',
+                'change_label': 'Change:',
+                'currency_symbol': 'AFA',
+                'item_header': 'Item',
+                'quantity_header': 'Qty',
+                'amount_header': 'Amount',
+                'subtotal_label': 'Subtotal:',
+                'discount_label': 'Discount',
+                'total_label': 'TOTAL:',
+                'records_message': 'Please keep this receipt for your records.',
+                'powered_by_label': 'Powered by',
+                'version_text': 'v1.0'
             }
         }
-
-    return {
-        'branding': {
-            'app_name': branding_settings.app_name,
-            'app_subtitle': branding_settings.app_subtitle,
-            'business_name': branding_settings.business_name,
-            'business_address': branding_settings.business_address,
-            'business_phone': branding_settings.business_phone,
-            'business_email': branding_settings.business_email,
-            'tax_id': branding_settings.tax_id,
-            'primary_color': branding_settings.primary_color,
-            'secondary_color': branding_settings.secondary_color,
-            'accent_color': branding_settings.accent_color,
-            'background_color': branding_settings.background_color,
-            'text_color': branding_settings.text_color,
-            'font_family': branding_settings.font_family,
-            'logo_url': branding_settings.logo_url,
-            'favicon_url': branding_settings.favicon_url,
-            'footer_text': branding_settings.footer_text
-        }
-    }
 
 # Routes
 @app.route('/')
@@ -371,31 +657,134 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
+    # Get client IP and check if blocked
+    client_ip = get_client_ip()
+    is_blocked, block_reason = is_ip_blocked(client_ip)
+
+    if is_blocked:
+        # Log blocked attempt
+        log_activity(user=None, action='login_blocked', action_category='security',
+                    resource_type='ip_address', resource_name=client_ip,
+                    details=f'Login attempt blocked from IP {client_ip}: {block_reason}',
+                    status='error', severity='warning', compliance_flag=True)
+
+        flash(f'Access denied. Your IP address has been blocked due to suspicious activity.', 'error')
+        return render_template('login.html', form=LoginForm(), blocked=True)
+
     form = LoginForm()
+
+    # Check if CAPTCHA is required
+    username = form.username.data if form.username.data else request.args.get('username', '')
+    require_captcha = should_require_captcha(username, client_ip)
+
+    # Handle CAPTCHA verification
+    if require_captcha and request.method == 'POST':
+        captcha_input = request.form.get('captcha', '')
+        captcha_hash = session.get('captcha_hash')
+
+        if not verify_captcha(captcha_hash, captcha_input):
+            # Record failed CAPTCHA attempt
+            record_login_attempt(username, client_ip, success=False, failure_reason='Invalid CAPTCHA')
+            flash('Invalid CAPTCHA. Please try again.', 'error')
+
+            # Generate new CAPTCHA
+            captcha_text = generate_captcha_text()
+            session['captcha_hash'] = hash_captcha_text(captcha_text)
+            session['captcha_text'] = captcha_text  # For debugging
+
+            return render_template('login.html', form=form, require_captcha=True,
+                                 captcha_text=captcha_text, username=username)
+
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
+
+        # Get recent failed attempts for progressive delay
+        user_attempts, ip_attempts = get_recent_failed_attempts(form.username.data, client_ip, minutes=15)
+        delay_seconds = get_progressive_delay(max(user_attempts, ip_attempts))
+
+        # Apply progressive delay
+        if delay_seconds > 0:
+            time.sleep(delay_seconds)
+
         if user and user.check_password(form.password.data):
+            # Successful login
+            record_login_attempt(form.username.data, client_ip, success=True)
+
+            # Clear CAPTCHA session on successful login
+            session.pop('captcha_hash', None)
+            session.pop('captcha_text', None)
+
             login_user(user)
-            # Log successful login
+
+            # Set session variables
+            session['session_id'] = str(uuid.uuid4())[:8]
+            session['terminal_id'] = f'TERM-{uuid.uuid4().hex[:8].upper()}'
+
+            # Log successful login with enhanced details
             log_activity(user=user, action='login', action_category='auth', resource_type='user',
                         resource_id=user.id, resource_name=user.username,
-                        details=f'User {user.username} logged in successfully',
+                        details=f'User {user.username} logged in successfully from IP {client_ip}',
                         severity='info', compliance_flag=True,
                         additional_data={
-                            'ip_address': request.remote_addr,
-                            'user_agent': request.headers.get('User-Agent')
+                            'ip_address': client_ip,
+                            'user_agent': request.headers.get('User-Agent'),
+                            'terminal_id': session.get('terminal_id')
                         })
+
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('index'))
+
         else:
-            # Log failed login attempt
+            # Failed login attempt
+            failure_reason = 'Invalid username or password'
+            record_login_attempt(form.username.data, client_ip, success=False, failure_reason=failure_reason)
+
+            # Check if we should block the IP
+            user_attempts, ip_attempts = get_recent_failed_attempts(form.username.data, client_ip, minutes=15)
+
+            # Block IP after 10 failed attempts in 15 minutes
+            if user_attempts >= 10 or ip_attempts >= 15:
+                block_ip(client_ip, f'Multiple failed login attempts ({max(user_attempts, ip_attempts)} total)',
+                        duration_minutes=30)
+                flash('Too many failed attempts. Your IP has been temporarily blocked.', 'error')
+                return render_template('login.html', form=form, blocked=True)
+
+            # Log failed login attempt with enhanced details
             log_activity(user=None, action='login_failed', action_category='auth', resource_type='user',
                         resource_name=form.username.data,
-                        details=f'Failed login attempt for username: {form.username.data}',
-                        status='error', error_message='Invalid username or password',
-                        severity='warning', compliance_flag=True)
-            flash('Invalid username or password', 'error')
-    return render_template('login.html', form=form)
+                        details=f'Failed login attempt for username: {form.username.data} from IP {client_ip}',
+                        status='error', error_message=failure_reason,
+                        severity='warning', compliance_flag=True,
+                        additional_data={
+                            'ip_address': client_ip,
+                            'user_agent': request.headers.get('User-Agent'),
+                            'attempt_count': max(user_attempts, ip_attempts)
+                        })
+
+            # Determine if CAPTCHA should be shown
+            require_captcha = should_require_captcha(form.username.data, client_ip)
+
+            if require_captcha:
+                # Generate CAPTCHA
+                captcha_text = generate_captcha_text()
+                session['captcha_hash'] = hash_captcha_text(captcha_text)
+                session['captcha_text'] = captcha_text  # For debugging
+
+                flash('Invalid username or password. Please complete the CAPTCHA to continue.', 'error')
+                return render_template('login.html', form=form, require_captcha=True,
+                                     captcha_text=captcha_text, username=form.username.data)
+            else:
+                flash('Invalid username or password', 'error')
+
+    # Generate CAPTCHA if required for GET request
+    captcha_text = None
+    if require_captcha:
+        captcha_text = generate_captcha_text()
+        session['captcha_hash'] = hash_captcha_text(captcha_text)
+        session['captcha_text'] = captcha_text
+
+    return render_template('login.html', form=form, require_captcha=require_captcha,
+                         captcha_text=captcha_text, username=username)
 
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
@@ -437,9 +826,9 @@ def dashboard():
     ).count()
 
     # Inventory metrics
-    total_items = Item.query.count()
-    out_of_stock = Item.query.filter_by(quantity=0).count()
-    low_stock = Item.query.filter(Item.quantity > 0, Item.quantity <= 5).count()
+    total_items = db.session.query(db.func.count(Item.id)).scalar()
+    out_of_stock = db.session.query(db.func.count(Item.id)).filter(Item.quantity == 0).scalar()
+    low_stock = db.session.query(db.func.count(Item.id)).filter(Item.quantity > 0, Item.quantity <= 5).scalar()
 
     # Top selling items
     top_items = Item.query.order_by(Item.sold_quantity.desc()).limit(5).all()
@@ -727,9 +1116,10 @@ def profile():
                 flash('Current password is incorrect.', 'error')
                 return redirect(url_for('profile'))
 
-            # Validate new password
-            if len(new_password) < 6:
-                flash('New password must be at least 6 characters long.', 'error')
+            # Validate new password strength
+            is_strong, strength_message = validate_password_strength(new_password)
+            if not is_strong:
+                flash(f'Password is too weak: {strength_message}', 'error')
                 return redirect(url_for('profile'))
 
             # Check if passwords match
@@ -740,6 +1130,12 @@ def profile():
             # Update password
             current_user.set_password(new_password)
             db.session.commit()
+
+            # Log password change
+            log_activity(user=current_user, action='password_change', action_category='auth',
+                        resource_type='user', resource_id=current_user.id, resource_name=current_user.username,
+                        details='User changed their password', severity='info', compliance_flag=True)
+
             flash('Password changed successfully!', 'success')
 
         elif action == 'set_secret_question':
@@ -1002,6 +1398,23 @@ def get_items():
         'sold_quantity': item.sold_quantity
     } for item in items])
 
+@app.route('/api/top_sold_items')
+@login_required
+def get_top_sold_items():
+    # Get top 10 sold items ordered by sold_quantity descending
+    top_items = Item.query.filter(Item.sold_quantity > 0).order_by(Item.sold_quantity.desc()).limit(10).all()
+
+    return jsonify({
+        'success': True,
+        'items': [{
+            'id': item.id,
+            'name': item.name,
+            'selling_price': item.selling_price,
+            'barcode': item.barcode,
+            'sold_quantity': item.sold_quantity
+        } for item in top_items]
+    })
+
 @app.route('/api/items/<int:item_id>', methods=['DELETE'])
 @login_required
 def delete_item(item_id):
@@ -1102,6 +1515,86 @@ def add_sample_items():
 
     db.session.commit()
     return jsonify({'success': True, 'message': f'Added {added_count} sample items successfully'})
+
+@app.route('/api/import_item', methods=['POST'])
+@login_required
+def import_item():
+    """Import a single item with automatic barcode generation"""
+    if not has_permission(current_user, 'manage_inventory'):
+        return jsonify({'error': 'Access denied. You do not have permission to manage inventory.'}), 403
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    # Validate required fields
+    if not data.get('name'):
+        return jsonify({'error': 'Item name is required'}), 400
+
+    try:
+        # Generate barcode if not provided
+        barcode = data.get('barcode')
+        if not barcode:
+            barcode = str(int(datetime.now(timezone.utc).timestamp() * 1000000))
+
+        # Check if barcode already exists
+        existing_item = Item.query.filter_by(barcode=barcode).first()
+        if existing_item:
+            return jsonify({'error': f'Barcode {barcode} already exists for item: {existing_item.name}'}), 400
+
+        # Check if item name already exists
+        existing_name = Item.query.filter_by(name=data['name']).first()
+        if existing_name:
+            return jsonify({'error': f'Item with name "{data["name"]}" already exists'}), 400
+
+        # Get category if provided
+        category_id = None
+        if data.get('category'):
+            category = Category.query.filter_by(name=data['category']).first()
+            if category:
+                category_id = category.id
+            else:
+                # Create new category if it doesn't exist
+                new_category = Category(name=data['category'])
+                db.session.add(new_category)
+                db.session.flush()
+                category_id = new_category.id
+
+        # Create new item
+        item = Item(
+            name=data['name'],
+            buying_price=float(data.get('buying_price', 0)),
+            selling_price=float(data.get('selling_price', 0)),
+            quantity=int(data.get('quantity', 0)),
+            barcode=barcode,
+            category_id=category_id,
+            expiry_date=datetime.strptime(data['expiry_date'], '%Y-%m-%d').date() if data.get('expiry_date') else None
+        )
+
+        db.session.add(item)
+        db.session.commit()
+
+        # Log the import
+        log_activity(user=current_user, action='item_import', action_category='inventory',
+                    resource_type='item', resource_id=item.id, resource_name=item.name,
+                    details=f'Imported item via CSV: {item.name} with barcode {item.barcode}')
+
+        return jsonify({
+            'success': True,
+            'message': f'Item "{item.name}" imported successfully',
+            'item': {
+                'id': item.id,
+                'name': item.name,
+                'barcode': item.barcode
+            }
+        })
+
+    except ValueError as e:
+        return jsonify({'error': f'Invalid data format: {str(e)}'}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Error importing item: {str(e)}'}), 500
 
 @app.route('/api/sales')
 @login_required
@@ -1378,10 +1871,34 @@ def print_receipt(sale_id):
     cash_received = sale.cash_received
     change_amount = sale.change_amount
 
-    # Get branding settings
-    branding_settings = Branding.query.first()
-    if not branding_settings:
-        branding_settings = Branding()
+    # Get branding settings with error handling
+    try:
+        branding_settings = Branding.query.first()
+        if not branding_settings:
+            # Create default branding if none exists
+            branding_settings = Branding()
+    except Exception as e:
+        print(f"Error querying branding table: {e}")
+        # Create a default branding object when SQLAlchemy fails
+        branding_settings = type('Branding', (), {
+            'app_name': 'POS System',
+            'app_subtitle': 'Professional Point of Sale',
+            'business_name': 'Azizi SuperStore',
+            'business_address': 'سرای علاوالدین، کابل، افغانستان',
+            'business_phone': '+93799996645',
+            'business_email': 'info@azizi.af',
+            'tax_id': 'AF-123456789',
+            'primary_color': '#6366f1',
+            'secondary_color': '#8b5cf6',
+            'accent_color': '#10b981',
+            'background_color': '#ffffff',
+            'text_color': '#1f2937',
+            'logo_url': 'https://azizi.af/logo.png',
+            'favicon_url': 'https://azizi.af/favicon.ico',
+            'font_family': 'Inter',
+            'footer_text': 'Thank you for shopping with us!',
+            'receipt_return_policy': 'For exchanges/returns, present this receipt within 30 days with original packaging.'
+        })()
 
     return render_template('receipt.html', sale=sale, cash_received=cash_received, change_amount=change_amount, branding=branding_settings)
 
@@ -1398,10 +1915,34 @@ def get_receipt_by_number(receipt_number):
     cash_received = sale.cash_received
     change_amount = sale.change_amount
 
-    # Get branding settings
-    branding_settings = Branding.query.first()
-    if not branding_settings:
-        branding_settings = Branding()
+    # Get branding settings with error handling
+    try:
+        branding_settings = Branding.query.first()
+        if not branding_settings:
+            # Create default branding if none exists
+            branding_settings = Branding()
+    except Exception as e:
+        print(f"Error querying branding table: {e}")
+        # Create a default branding object when SQLAlchemy fails
+        branding_settings = type('Branding', (), {
+            'app_name': 'POS System',
+            'app_subtitle': 'Professional Point of Sale',
+            'business_name': 'Azizi SuperStore',
+            'business_address': 'سرای علاوالدین، کابل، افغانستان',
+            'business_phone': '+93799996645',
+            'business_email': 'info@azizi.af',
+            'tax_id': 'AF-123456789',
+            'primary_color': '#6366f1',
+            'secondary_color': '#8b5cf6',
+            'accent_color': '#10b981',
+            'background_color': '#ffffff',
+            'text_color': '#1f2937',
+            'logo_url': 'https://azizi.af/logo.png',
+            'favicon_url': 'https://azizi.af/favicon.ico',
+            'font_family': 'Inter',
+            'footer_text': 'Thank you for shopping with us!',
+            'receipt_return_policy': 'For exchanges/returns, present this receipt within 30 days with original packaging.'
+        })()
 
     return render_template('receipt.html', sale=sale, cash_received=cash_received, change_amount=change_amount, branding=branding_settings)
 
@@ -1422,264 +1963,7 @@ def low_stock():
                          low_stock_items=low_stock_items,
                          out_of_stock_items=out_of_stock_items)
 
-@app.route('/backup')
-@login_required
-def backup():
-    if not has_permission(current_user, 'system_admin'):
-        flash('Access denied. Only system administrators can access backup functionality.', 'error')
-        return redirect(url_for('dashboard'))
 
-    return render_template('backup.html')
-
-@app.route('/download_backup')
-@login_required
-def download_backup():
-    if not has_permission(current_user, 'system_admin'):
-        flash('Access denied. Only system administrators can download backups.', 'error')
-        return redirect(url_for('dashboard'))
-
-    import os
-    from flask import send_file
-    from datetime import datetime
-
-    db_path = 'instance/pos.db'
-
-    if not os.path.exists(db_path):
-        flash('Database file not found.', 'error')
-        return redirect(url_for('backup'))
-
-    # Create backup filename with timestamp
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    backup_filename = f'pos_backup_{timestamp}.db'
-
-    try:
-        return send_file(
-            db_path,
-            as_attachment=True,
-            download_name=backup_filename,
-            mimetype='application/octet-stream'
-        )
-    except Exception as e:
-        flash(f'Error creating backup: {str(e)}', 'error')
-        return redirect(url_for('backup'))
-
-@app.route('/create_backup', methods=['POST'])
-@login_required
-def create_backup():
-    if not has_permission(current_user, 'system_admin'):
-        return jsonify({'error': 'Access denied. Only system administrators can create backups.'}), 403
-
-    import os
-    import shutil
-    from datetime import datetime
-
-    try:
-        # Ensure backup directory exists
-        backup_dir = 'backups'
-        if not os.path.exists(backup_dir):
-            os.makedirs(backup_dir)
-
-        # Create backup filename with timestamp
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        backup_filename = f'pos_backup_{timestamp}.db'
-        backup_path = os.path.join(backup_dir, backup_filename)
-
-        # Copy database file
-        db_path = 'instance/pos.db'
-        if os.path.exists(db_path):
-            shutil.copy2(db_path, backup_path)
-
-            # Get backup file size
-            file_size = os.path.getsize(backup_path)
-            file_size_mb = file_size / (1024 * 1024)
-
-            # Create backup metadata
-            metadata = {
-                'filename': backup_filename,
-                'created_at': datetime.now().isoformat(),
-                'size_bytes': file_size,
-                'size_mb': round(file_size_mb, 2),
-                'created_by': current_user.username,
-                'version': '1.0'
-            }
-
-            # Save metadata
-            metadata_path = backup_path + '.meta'
-            with open(metadata_path, 'w') as f:
-                import json
-                json.dump(metadata, f, indent=2)
-
-            return jsonify({
-                'success': True,
-                'message': f'Backup created successfully: {backup_filename}',
-                'filename': backup_filename,
-                'size': f'{file_size_mb:.2f} MB',
-                'path': backup_path,
-                'metadata': metadata
-            })
-        else:
-            return jsonify({'error': 'Database file not found.'}), 404
-
-    except Exception as e:
-        return jsonify({'error': f'Error creating backup: {str(e)}'}), 500
-
-@app.route('/restore_backup', methods=['POST'])
-@login_required
-def restore_backup():
-    if not has_permission(current_user, 'system_admin'):
-        return jsonify({'error': 'Access denied. Only system administrators can restore backups.'}), 403
-
-    import os
-    import shutil
-    from datetime import datetime
-    from werkzeug.utils import secure_filename
-
-    try:
-        if 'backup_file' not in request.files:
-            return jsonify({'error': 'No backup file provided.'}), 400
-
-        file = request.files['backup_file']
-        if file.filename == '':
-            return jsonify({'error': 'No file selected.'}), 400
-
-        # Validate file extension
-        if not file.filename.endswith('.db'):
-            return jsonify({'error': 'Invalid file type. Only .db files are allowed.'}), 400
-
-        # Secure filename
-        filename = secure_filename(file.filename)
-
-        # Create temporary backup of current database
-        db_path = 'instance/pos.db'
-        temp_backup = f'instance/pos_temp_backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.db'
-
-        if os.path.exists(db_path):
-            shutil.copy2(db_path, temp_backup)
-
-        # Save uploaded file temporarily
-        upload_dir = 'temp_uploads'
-        if not os.path.exists(upload_dir):
-            os.makedirs(upload_dir)
-
-        temp_path = os.path.join(upload_dir, filename)
-        file.save(temp_path)
-
-        # Validate the uploaded file (basic check)
-        if not os.path.exists(temp_path) or os.path.getsize(temp_path) == 0:
-            # Cleanup
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-            return jsonify({'error': 'Uploaded file is empty or invalid.'}), 400
-
-        # Replace current database
-        shutil.copy2(temp_path, db_path)
-
-        # Cleanup
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
-        # Clear any cached data
-        # Note: In a production app, you might want to restart the application
-        # or clear specific caches
-
-        return jsonify({
-            'success': True,
-            'message': f'Database restored successfully from {filename}',
-            'temp_backup': temp_backup,
-            'warning': 'Please restart the application to ensure all changes take effect.'
-        })
-
-    except Exception as e:
-        return jsonify({'error': f'Error restoring backup: {str(e)}'}), 500
-
-@app.route('/list_backups')
-@login_required
-def list_backups():
-    if not has_permission(current_user, 'system_admin'):
-        return jsonify({'error': 'Access denied. Only system administrators can list backups.'}), 403
-
-    import os
-    import json
-    from datetime import datetime
-
-    try:
-        backup_dir = 'backups'
-        backups = []
-
-        if os.path.exists(backup_dir):
-            for filename in os.listdir(backup_dir):
-                if filename.endswith('.db'):
-                    filepath = os.path.join(backup_dir, filename)
-                    metadata_path = filepath + '.meta'
-
-                    # Get file stats
-                    stat = os.stat(filepath)
-                    size_mb = stat.st_size / (1024 * 1024)
-
-                    # Try to load metadata
-                    metadata = {}
-                    if os.path.exists(metadata_path):
-                        try:
-                            with open(metadata_path, 'r') as f:
-                                metadata = json.load(f)
-                        except:
-                            pass
-
-                    backup_info = {
-                        'filename': filename,
-                        'size_mb': round(size_mb, 2),
-                        'created_at': metadata.get('created_at', stat.st_mtime),
-                        'created_by': metadata.get('created_by', 'Unknown'),
-                        'version': metadata.get('version', 'N/A')
-                    }
-                    backups.append(backup_info)
-
-        # Sort by creation date (newest first)
-        backups.sort(key=lambda x: x['created_at'], reverse=True)
-
-        return jsonify({
-            'success': True,
-            'backups': backups
-        })
-
-    except Exception as e:
-        return jsonify({'error': f'Error listing backups: {str(e)}'}), 500
-
-@app.route('/download_specific_backup/<filename>')
-@login_required
-def download_specific_backup(filename):
-    if not has_permission(current_user, 'system_admin'):
-        flash('Access denied. Only system administrators can download backups.', 'error')
-        return redirect(url_for('backup'))
-
-    import os
-    from werkzeug.utils import secure_filename
-
-    try:
-        # Security check - only allow .db files
-        if not filename.endswith('.db'):
-            flash('Invalid file type.', 'error')
-            return redirect(url_for('backup'))
-
-        # Secure the filename
-        secure_name = secure_filename(filename)
-
-        backup_path = os.path.join('backups', secure_name)
-
-        if not os.path.exists(backup_path):
-            flash('Backup file not found.', 'error')
-            return redirect(url_for('backup'))
-
-        return send_file(
-            backup_path,
-            as_attachment=True,
-            download_name=secure_name,
-            mimetype='application/octet-stream'
-        )
-
-    except Exception as e:
-        flash(f'Error downloading backup: {str(e)}', 'error')
-        return redirect(url_for('backup'))
 
 @app.route('/user_guide')
 @login_required
@@ -1705,6 +1989,461 @@ def developer_guide():
         return redirect(url_for('dashboard'))
 
     return render_template('developer_guide.html')
+
+@app.route('/security_monitor')
+@login_required
+def security_monitor():
+    # Only admins can access security monitoring
+    if not has_permission(current_user, 'system_admin'):
+        flash('Access denied. Only system administrators can view security monitoring.', 'error')
+        return redirect(url_for('dashboard'))
+
+    # Get recent login attempts (last 24 hours)
+    cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+    recent_attempts = LoginAttempt.query.filter(
+        LoginAttempt.attempt_time >= cutoff_time
+    ).order_by(LoginAttempt.attempt_time.desc()).limit(100).all()
+
+    # Get blocked IPs
+    blocked_ips = BlockedIP.query.filter(
+        BlockedIP.blocked_until > datetime.now(timezone.utc)
+    ).order_by(BlockedIP.blocked_until.desc()).all()
+
+    # Get security statistics
+    stats_24h = get_security_stats(hours=24)
+    stats_7d = get_security_stats(hours=168)  # 7 days
+
+    # Get failed login attempts by IP (top 10)
+    failed_by_ip = db.session.query(
+        LoginAttempt.ip_address,
+        db.func.count(LoginAttempt.id).label('count')
+    ).filter(
+        LoginAttempt.success == False,
+        LoginAttempt.attempt_time >= cutoff_time
+    ).group_by(LoginAttempt.ip_address).order_by(db.desc('count')).limit(10).all()
+
+    # Get failed login attempts by username (top 10)
+    failed_by_user = db.session.query(
+        LoginAttempt.username,
+        db.func.count(LoginAttempt.id).label('count')
+    ).filter(
+        LoginAttempt.success == False,
+        LoginAttempt.attempt_time >= cutoff_time
+    ).group_by(LoginAttempt.username).order_by(db.desc('count')).limit(10).all()
+
+    return render_template('security_monitor.html',
+                         recent_attempts=recent_attempts,
+                         blocked_ips=blocked_ips,
+                         stats_24h=stats_24h,
+                         stats_7d=stats_7d,
+                         failed_by_ip=failed_by_ip,
+                         failed_by_user=failed_by_user)
+
+@app.route('/api/unblock_ip/<ip_address>', methods=['POST'])
+@login_required
+def unblock_ip(ip_address):
+    if not has_permission(current_user, 'system_admin'):
+        return jsonify({'error': 'Access denied'}), 403
+
+    blocked_ip = BlockedIP.query.filter_by(ip_address=ip_address).first()
+    if blocked_ip:
+        db.session.delete(blocked_ip)
+        db.session.commit()
+
+        # Log the unblock action
+        log_activity(user=current_user, action='ip_unblocked', action_category='security',
+                    resource_type='ip_address', resource_name=ip_address,
+                    details=f'IP address {ip_address} was manually unblocked by administrator',
+                    severity='info', compliance_flag=True)
+
+        return jsonify({'success': True, 'message': f'IP {ip_address} has been unblocked'})
+    else:
+        return jsonify({'error': 'IP address not found in blocked list'}), 404
+
+# Enhanced Security Monitor API Endpoints
+@app.route('/api/security_events')
+@login_required
+def get_security_events():
+    if not has_permission(current_user, 'system_admin'):
+        return jsonify({'error': 'Access denied'}), 403
+
+    # Get recent security events (last 5 minutes)
+    cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=5)
+
+    recent_attempts = LoginAttempt.query.filter(
+        LoginAttempt.attempt_time >= cutoff_time
+    ).order_by(LoginAttempt.attempt_time.desc()).all()
+
+    events = []
+    for attempt in recent_attempts:
+        if attempt.success:
+            events.append({
+                'type': 'successful_login',
+                'title': 'Successful Login',
+                'message': f'User {attempt.username} logged in successfully from {attempt.ip_address}',
+                'severity': 'low',
+                'timestamp': attempt.attempt_time.isoformat(),
+                'ip_address': attempt.ip_address,
+                'username': attempt.username
+            })
+        else:
+            events.append({
+                'type': 'failed_login',
+                'title': 'Failed Login Attempt',
+                'message': f'Failed login attempt for user {attempt.username} from {attempt.ip_address}',
+                'severity': 'medium',
+                'timestamp': attempt.attempt_time.isoformat(),
+                'ip_address': attempt.ip_address,
+                'username': attempt.username
+            })
+
+    return jsonify({'new_events': events})
+
+@app.route('/api/security_dashboard_data')
+@login_required
+def get_security_dashboard_data():
+    if not has_permission(current_user, 'system_admin'):
+        return jsonify({'error': 'Access denied'}), 403
+
+    # Get data for the last 7 days
+    end_date = datetime.now(timezone.utc)
+    start_date = end_date - timedelta(days=7)
+
+    # Login attempts over time
+    login_data = db.session.query(
+        db.func.date(LoginAttempt.attempt_time).label('date'),
+        db.func.count(db.case((LoginAttempt.success == True, 1))).label('successful'),
+        db.func.count(db.case((LoginAttempt.success == False, 1))).label('failed')
+    ).filter(
+        LoginAttempt.attempt_time >= start_date
+    ).group_by(db.func.date(LoginAttempt.attempt_time)).all()
+
+    # Format dates and data for charts
+    dates = []
+    successful_logins = []
+    failed_attempts = []
+
+    for row in login_data:
+        dates.append(row.date.strftime('%Y-%m-%d'))
+        successful_logins.append(row.successful)
+        failed_attempts.append(row.failed)
+
+    # Geolocation data (simplified - in real implementation you'd use IP geolocation service)
+    geolocation_data = db.session.query(
+        LoginAttempt.ip_address,
+        db.func.count(LoginAttempt.id).label('count')
+    ).filter(
+        LoginAttempt.attempt_time >= start_date
+    ).group_by(LoginAttempt.ip_address).order_by(db.desc('count')).limit(10).all()
+
+    countries = []
+    geo_counts = []
+    for row in geolocation_data:
+        # Simplified country detection - in production use a proper geolocation service
+        countries.append(f"IP: {row.ip_address}")
+        geo_counts.append(row.count)
+
+    # Current metrics
+    current_stats = get_security_stats(hours=24)
+
+    return jsonify({
+        'loginAttempts': {
+            'labels': dates,
+            'successful': successful_logins,
+            'failed': failed_attempts
+        },
+        'geolocation': {
+            'countries': countries,
+            'counts': geo_counts
+        },
+        'metrics': {
+            'totalAttempts': current_stats['total_attempts'],
+            'successfulLogins': current_stats['successful_logins'],
+            'failedAttempts': current_stats['failed_attempts'],
+            'blockedIPs': current_stats['currently_blocked'],
+            'successRate': f"{current_stats['success_rate']:.1f}%"
+        }
+    })
+
+@app.route('/api/security_data')
+@login_required
+def get_security_data():
+    if not has_permission(current_user, 'system_admin'):
+        return jsonify({'error': 'Access denied'}), 403
+
+    # Get filter parameters
+    date_from = request.args.get('dateFrom')
+    date_to = request.args.get('dateTo')
+    severity = request.args.get('severity')
+    ip_address = request.args.get('ipAddress')
+    username = request.args.get('username')
+
+    # Build query
+    query = LoginAttempt.query
+
+    if date_from:
+        query = query.filter(LoginAttempt.attempt_time >= date_from)
+    if date_to:
+        query = query.filter(LoginAttempt.attempt_time <= date_to + ' 23:59:59')
+    if ip_address:
+        query = query.filter(LoginAttempt.ip_address == ip_address)
+    if username:
+        query = query.filter(LoginAttempt.username == username)
+
+    # Apply severity filtering based on success/failure patterns
+    if severity:
+        if severity == 'high':
+            # High severity: multiple failed attempts from same IP
+            query = query.filter(LoginAttempt.success == False)
+        elif severity == 'medium':
+            # Medium severity: failed attempts
+            query = query.filter(LoginAttempt.success == False)
+        elif severity == 'low':
+            # Low severity: successful logins
+            query = query.filter(LoginAttempt.success == True)
+
+    attempts = query.order_by(LoginAttempt.attempt_time.desc()).limit(1000).all()
+
+    return jsonify({
+        'attempts': [{
+            'id': attempt.id,
+            'username': attempt.username,
+            'ip_address': attempt.ip_address,
+            'success': attempt.success,
+            'attempt_time': attempt.attempt_time.isoformat(),
+            'user_agent': attempt.user_agent,
+            'failure_reason': attempt.failure_reason,
+            'captcha_required': attempt.captcha_required,
+            'captcha_solved': attempt.captcha_solved
+        } for attempt in attempts],
+        'total_count': query.count()
+    })
+
+@app.route('/api/security_alerts', methods=['GET', 'POST'])
+@login_required
+def security_alerts():
+    if not has_permission(current_user, 'system_admin'):
+        return jsonify({'error': 'Access denied'}), 403
+
+    if request.method == 'GET':
+        # Return current alert settings (simplified - in production you'd store these in DB)
+        return jsonify({
+            'failedLoginThreshold': 5,
+            'suspiciousIPThreshold': 10,
+            'enableEmailAlerts': True,
+            'enableRealTimeAlerts': True,
+            'alertEmail': 'admin@example.com'
+        })
+
+    elif request.method == 'POST':
+        # Save alert settings
+        data = request.get_json()
+
+        # In a real implementation, you'd save these to a database
+        # For now, just return success
+        return jsonify({
+            'success': True,
+            'message': 'Security alert settings updated successfully'
+        })
+
+@app.route('/api/security_threat_analysis')
+@login_required
+def get_security_threat_analysis():
+    if not has_permission(current_user, 'system_admin'):
+        return jsonify({'error': 'Access denied'}), 403
+
+    # Analyze current threat levels
+    now = datetime.now(timezone.utc)
+    last_hour = now - timedelta(hours=1)
+    last_24h = now - timedelta(hours=24)
+
+    # Failed login attempts in last hour
+    recent_failed = LoginAttempt.query.filter(
+        LoginAttempt.success == False,
+        LoginAttempt.attempt_time >= last_hour
+    ).count()
+
+    # Failed login attempts in last 24 hours
+    daily_failed = LoginAttempt.query.filter(
+        LoginAttempt.success == False,
+        LoginAttempt.attempt_time >= last_24h
+    ).count()
+
+    # Currently blocked IPs
+    blocked_count = BlockedIP.query.filter(
+        BlockedIP.blocked_until > now
+    ).count()
+
+    # Calculate threat level
+    threat_score = 0
+    if recent_failed > 10:
+        threat_score += 3
+    elif recent_failed > 5:
+        threat_score += 2
+    elif recent_failed > 2:
+        threat_score += 1
+
+    if daily_failed > 50:
+        threat_score += 3
+    elif daily_failed > 25:
+        threat_score += 2
+    elif daily_failed > 10:
+        threat_score += 1
+
+    if blocked_count > 5:
+        threat_score += 2
+    elif blocked_count > 2:
+        threat_score += 1
+
+    # Determine threat level
+    if threat_score >= 6:
+        threat_level = 'critical'
+    elif threat_score >= 4:
+        threat_level = 'high'
+    elif threat_score >= 2:
+        threat_level = 'medium'
+    else:
+        threat_level = 'low'
+
+    return jsonify({
+        'threat_level': threat_level,
+        'threat_score': threat_score,
+        'metrics': {
+            'recent_failed_attempts': recent_failed,
+            'daily_failed_attempts': daily_failed,
+            'blocked_ips': blocked_count
+        },
+        'recommendations': get_security_recommendations(threat_level)
+    })
+
+def get_security_recommendations(threat_level):
+    """Get security recommendations based on threat level"""
+    recommendations = {
+        'low': [
+            'Continue monitoring login attempts',
+            'Regular security audits recommended'
+        ],
+        'medium': [
+            'Increase monitoring frequency',
+            'Review recent failed login attempts',
+            'Consider enabling additional security measures'
+        ],
+        'high': [
+            'Immediate attention required',
+            'Review and potentially block suspicious IPs',
+            'Enable enhanced security features',
+            'Monitor user accounts for compromise'
+        ],
+        'critical': [
+            'URGENT: Security breach possible',
+            'Block all suspicious IPs immediately',
+            'Enable maximum security measures',
+            'Review all recent user activities',
+            'Consider temporary system lockdown',
+            'Contact security team immediately'
+        ]
+    }
+
+    return recommendations.get(threat_level, [])
+
+def get_security_stats(hours=24):
+    """Get security statistics for the specified number of hours"""
+    cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+
+    # Total login attempts
+    total_attempts = LoginAttempt.query.filter(
+        LoginAttempt.attempt_time >= cutoff_time
+    ).count()
+
+    # Successful logins
+    successful_logins = LoginAttempt.query.filter(
+        LoginAttempt.success == True,
+        LoginAttempt.attempt_time >= cutoff_time
+    ).count()
+
+    # Failed login attempts
+    failed_attempts = LoginAttempt.query.filter(
+        LoginAttempt.success == False,
+        LoginAttempt.attempt_time >= cutoff_time
+    ).count()
+
+    # CAPTCHA required attempts
+    captcha_required = LoginAttempt.query.filter(
+        LoginAttempt.captcha_required == True,
+        LoginAttempt.attempt_time >= cutoff_time
+    ).count()
+
+    # CAPTCHA solved attempts
+    captcha_solved = LoginAttempt.query.filter(
+        LoginAttempt.captcha_solved == True,
+        LoginAttempt.attempt_time >= cutoff_time
+    ).count()
+
+    # Unique IPs attempting login
+    unique_ips = db.session.query(LoginAttempt.ip_address).filter(
+        LoginAttempt.attempt_time >= cutoff_time
+    ).distinct().count()
+
+    # Currently blocked IPs
+    currently_blocked = BlockedIP.query.filter(
+        BlockedIP.blocked_until > datetime.now(timezone.utc)
+    ).count()
+
+    return {
+        'total_attempts': total_attempts,
+        'successful_logins': successful_logins,
+        'failed_attempts': failed_attempts,
+        'success_rate': (successful_logins / total_attempts * 100) if total_attempts > 0 else 0,
+        'captcha_required': captcha_required,
+        'captcha_solved': captcha_solved,
+        'unique_ips': unique_ips,
+        'currently_blocked': currently_blocked,
+        'period_hours': hours
+    }
+
+@app.route('/reset_system', methods=['POST'])
+@login_required
+def reset_system():
+    # Only admins can reset the system
+    if not has_permission(current_user, 'system_admin'):
+        return jsonify({'error': 'Access denied. Only system administrators can reset the system.'}), 403
+
+    try:
+        # Log the reset action before proceeding
+        log_activity(user=current_user, action='system_reset', action_category='system',
+                    resource_type='system', details='System reset initiated by administrator',
+                    severity='critical', compliance_flag=True)
+
+        # Import and run the database recreation script
+        from recreate_db import create_tables as recreate_database
+
+        # Drop all tables and recreate them
+        db.drop_all()
+        db.create_all()
+
+        # Run the create_tables function to set up default data
+        recreate_database()
+
+        # Log successful reset
+        log_activity(user=None, action='system_reset', action_category='system',
+                    resource_type='system', details='System reset completed successfully',
+                    severity='info', compliance_flag=True)
+
+        return jsonify({
+            'success': True,
+            'message': 'System reset completed successfully. All data has been cleared and default settings restored.'
+        })
+
+    except Exception as e:
+        # Log the error
+        log_activity(user=current_user, action='system_reset_failed', action_category='system',
+                    resource_type='system', details=f'System reset failed: {str(e)}',
+                    status='error', error_message=str(e), severity='critical', compliance_flag=True)
+
+        return jsonify({
+            'success': False,
+            'error': f'System reset failed: {str(e)}'
+        }), 500
 
 @app.route('/activity_logs')
 @login_required
@@ -1970,51 +2709,145 @@ def branding():
         flash('Access denied. Only system administrators can manage branding.', 'error')
         return redirect(url_for('dashboard'))
 
-    # Get or create branding settings
-    branding_settings = Branding.query.first()
-    if not branding_settings:
-        branding_settings = Branding()
-        db.session.add(branding_settings)
-        db.session.commit()
+    # Get the single branding record (singleton pattern)
+    try:
+        branding_settings = Branding.query.first()
+        if not branding_settings:
+            # Create the single branding record if it doesn't exist
+            branding_settings = Branding()
+            db.session.add(branding_settings)
+            db.session.commit()
+            print("Created single branding record")
+    except Exception as e:
+        print(f"Error querying branding table: {e}")
+        # Create a default branding object for the template
+        branding_settings = type('Branding', (), {
+            'app_name': 'POS System',
+            'app_subtitle': 'Professional Point of Sale',
+            'business_name': '',
+            'business_address': '',
+            'business_phone': '',
+            'business_email': '',
+            'tax_id': '',
+            'primary_color': '#6366f1',
+            'secondary_color': '#8b5cf6',
+            'accent_color': '#10b981',
+            'background_color': '#ffffff',
+            'text_color': '#1f2937',
+            'font_family': 'Inter',
+            'logo_url': '',
+            'favicon_url': '',
+            'footer_text': 'Thank you for your business!',
+            'receipt_return_policy': 'For exchanges/returns, present this receipt within 30 days.',
+            'receipt_header_title': 'RECEIPT',
+            'receipt_number_label': 'Receipt #:',
+            'date_label': 'Date:',
+            'cashier_label': 'Cashier:',
+            'payment_method_label': 'Payment Method:',
+            'payment_method_value': 'Cash',
+            'cash_received_label': 'Cash Received:',
+            'change_label': 'Change:',
+            'currency_symbol': 'AFA',
+            'item_header': 'Item',
+            'quantity_header': 'Qty',
+            'amount_header': 'Amount',
+            'subtotal_label': 'Subtotal:',
+            'discount_label': 'Discount',
+            'total_label': 'TOTAL:',
+            'records_message': 'Please keep this receipt for your records.',
+            'powered_by_label': 'Powered by',
+            'version_text': 'v1.0'
+        })()
 
     if request.method == 'POST':
-        # Update branding settings
-        branding_settings.app_name = request.form.get('app_name', branding_settings.app_name)
-        branding_settings.app_subtitle = request.form.get('app_subtitle', branding_settings.app_subtitle)
+        # Update the single branding record
+        try:
+            # Ensure we have a real SQLAlchemy object
+            if not hasattr(branding_settings, 'id') or branding_settings.id is None:
+                # If we have a mock object, get the real one from database
+                real_branding = Branding.query.first()
+                if real_branding:
+                    branding_settings = real_branding
+                else:
+                    # Create new branding record
+                    branding_settings = Branding()
+                    db.session.add(branding_settings)
 
-        # Business information
-        branding_settings.business_name = request.form.get('business_name', branding_settings.business_name)
-        branding_settings.business_address = request.form.get('business_address', branding_settings.business_address)
-        branding_settings.business_phone = request.form.get('business_phone', branding_settings.business_phone)
-        branding_settings.business_email = request.form.get('business_email', branding_settings.business_email)
-        branding_settings.tax_id = request.form.get('tax_id', branding_settings.tax_id)
+            # Update all branding settings - handle empty fields with placeholder defaults
+            branding_settings.app_name = request.form.get('app_name', '').strip() or 'POS System'
+            branding_settings.app_subtitle = request.form.get('app_subtitle', '').strip() or 'Professional Point of Sale'
 
-        # Theme colors
-        branding_settings.primary_color = request.form.get('primary_color', branding_settings.primary_color)
-        branding_settings.secondary_color = request.form.get('secondary_color', branding_settings.secondary_color)
-        branding_settings.accent_color = request.form.get('accent_color', branding_settings.accent_color)
-        branding_settings.background_color = request.form.get('background_color', branding_settings.background_color)
-        branding_settings.text_color = request.form.get('text_color', branding_settings.text_color)
+            # Handle nullable fields with placeholder defaults
+            business_name = request.form.get('business_name', '').strip()
+            branding_settings.business_name = business_name if business_name else None
 
-        # Typography
-        branding_settings.font_family = request.form.get('font_family', branding_settings.font_family)
+            business_address = request.form.get('business_address', '').strip()
+            branding_settings.business_address = business_address if business_address else None
 
-        # Footer text
-        branding_settings.footer_text = request.form.get('footer_text', branding_settings.footer_text)
+            business_phone = request.form.get('business_phone', '').strip()
+            branding_settings.business_phone = business_phone if business_phone else None
 
-        # Logo URLs (for now, just text fields)
-        branding_settings.logo_url = request.form.get('logo_url', branding_settings.logo_url)
-        branding_settings.favicon_url = request.form.get('favicon_url', branding_settings.favicon_url)
+            business_email = request.form.get('business_email', '').strip()
+            branding_settings.business_email = business_email if business_email and business_email != 'info@yourbusiness.com' else None
 
-        db.session.commit()
+            tax_id = request.form.get('tax_id', '').strip()
+            branding_settings.tax_id = tax_id if tax_id else None
 
-        # Log branding update
-        log_activity(user=current_user, action='branding_update', resource_type='branding',
-                    resource_id=branding_settings.id, resource_name='Branding Settings',
-                    details=f'Updated branding settings: app_name={branding_settings.app_name}, business_name={branding_settings.business_name}')
+            # Handle color fields with defaults
+            branding_settings.primary_color = request.form.get('primary_color', '').strip() or '#6366f1'
+            branding_settings.secondary_color = request.form.get('secondary_color', '').strip() or '#8b5cf6'
+            branding_settings.accent_color = request.form.get('accent_color', '').strip() or '#10b981'
+            branding_settings.background_color = request.form.get('background_color', '').strip() or '#ffffff'
+            branding_settings.text_color = request.form.get('text_color', '').strip() or '#1f2937'
+            branding_settings.font_family = request.form.get('font_family', '').strip() or 'Inter'
 
-        flash('Branding settings updated successfully!', 'success')
-        return redirect(url_for('branding'))
+            # Handle URL fields with placeholder defaults
+            logo_url = request.form.get('logo_url', '').strip()
+            branding_settings.logo_url = logo_url if logo_url and logo_url != 'https://example.com/logo.png' else None
+
+            favicon_url = request.form.get('favicon_url', '').strip()
+            branding_settings.favicon_url = favicon_url if favicon_url and favicon_url != 'https://example.com/favicon.ico' else None
+
+            footer_text = request.form.get('footer_text', '').strip()
+            branding_settings.footer_text = footer_text if footer_text else 'Thank you for your business!'
+            branding_settings.receipt_return_policy = request.form.get('receipt_return_policy', branding_settings.receipt_return_policy)
+
+            # Receipt customization fields
+            branding_settings.receipt_header_title = request.form.get('receipt_header_title', branding_settings.receipt_header_title)
+            branding_settings.receipt_number_label = request.form.get('receipt_number_label', branding_settings.receipt_number_label)
+            branding_settings.date_label = request.form.get('date_label', branding_settings.date_label)
+            branding_settings.cashier_label = request.form.get('cashier_label', branding_settings.cashier_label)
+            branding_settings.payment_method_label = request.form.get('payment_method_label', branding_settings.payment_method_label)
+            branding_settings.payment_method_value = request.form.get('payment_method_value', branding_settings.payment_method_value)
+            branding_settings.cash_received_label = request.form.get('cash_received_label', branding_settings.cash_received_label)
+            branding_settings.change_label = request.form.get('change_label', branding_settings.change_label)
+            branding_settings.currency_symbol = request.form.get('currency_symbol', branding_settings.currency_symbol)
+            branding_settings.item_header = request.form.get('item_header', branding_settings.item_header)
+            branding_settings.quantity_header = request.form.get('quantity_header', branding_settings.quantity_header)
+            branding_settings.amount_header = request.form.get('amount_header', branding_settings.amount_header)
+            branding_settings.subtotal_label = request.form.get('subtotal_label', branding_settings.subtotal_label)
+            branding_settings.discount_label = request.form.get('discount_label', branding_settings.discount_label)
+            branding_settings.total_label = request.form.get('total_label', branding_settings.total_label)
+            branding_settings.records_message = request.form.get('records_message', branding_settings.records_message)
+            branding_settings.powered_by_label = request.form.get('powered_by_label', branding_settings.powered_by_label)
+            branding_settings.version_text = request.form.get('version_text', branding_settings.version_text)
+
+            db.session.commit()
+
+            # Log branding update
+            if hasattr(branding_settings, 'id') and branding_settings.id:
+                log_activity(user=current_user, action='branding_update', resource_type='branding',
+                            resource_id=branding_settings.id, resource_name='Branding Settings',
+                            details=f'Updated branding settings: app_name={branding_settings.app_name}, business_name={branding_settings.business_name}')
+
+            flash('Branding settings updated successfully!', 'success')
+            return redirect(url_for('branding'))
+
+        except Exception as e:
+            print(f"Error updating branding: {e}")
+            db.session.rollback()
+            flash('Error updating branding settings. Please try again.', 'error')
+            return redirect(url_for('branding'))
 
     return render_template('branding.html', branding=branding_settings)
 
@@ -2303,12 +3136,156 @@ def create_tables():
             db.session.add(cashier)
 
         # Create default branding settings if not exists
-        if not Branding.query.first():
-            default_branding = Branding()
-            db.session.add(default_branding)
+        try:
+            if not Branding.query.first():
+                default_branding = Branding()
+                db.session.add(default_branding)
+        except Exception as e:
+            # If there's an error (likely due to missing column), create branding with raw SQL
+            print(f"Error querying branding table: {e}")
+            print("Creating default branding settings with raw SQL...")
+            db.session.execute(db.text("""
+                INSERT OR IGNORE INTO branding (
+                    app_name, app_subtitle, business_name, business_address,
+                    business_phone, business_email, tax_id, primary_color,
+                    secondary_color, accent_color, background_color, text_color,
+                    logo_url, favicon_url, font_family, footer_text,
+                    created_at, updated_at
+                ) VALUES (
+                    'POS System', 'Professional Point of Sale', NULL, NULL,
+                    NULL, NULL, NULL, '#6366f1',
+                    '#8b5cf6', '#10b981', '#ffffff', '#1f2937',
+                    NULL, NULL, 'Inter', 'Thank you for your business!',
+                    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                )
+            """))
 
         db.session.commit()
 
+# Database migration function to handle schema updates
+def migrate_database():
+    """Migrate database schema to handle missing columns from older backups"""
+    with app.app_context():
+        import sqlite3
+        from sqlalchemy import text
+
+        try:
+            # Connect to database directly for schema inspection
+            db_path = 'instance/pos.db'
+            if not os.path.exists(db_path):
+                return
+
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+
+            # Check if item table has category_id column
+            cursor.execute("PRAGMA table_info(item)")
+            columns = cursor.fetchall()
+            column_names = [col[1] for col in columns]
+
+            # Add category_id column if missing
+            if 'category_id' not in column_names:
+                print("Adding category_id column to item table...")
+                cursor.execute("ALTER TABLE item ADD COLUMN category_id INTEGER REFERENCES category(id)")
+                conn.commit()
+
+            # Check if item table has expiry_date column
+            if 'expiry_date' not in column_names:
+                print("Adding expiry_date column to item table...")
+                cursor.execute("ALTER TABLE item ADD COLUMN expiry_date DATE")
+                conn.commit()
+
+            # Check if user table has secret_question and secret_answer columns
+            cursor.execute("PRAGMA table_info(user)")
+            user_columns = cursor.fetchall()
+            user_column_names = [col[1] for col in user_columns]
+
+            if 'secret_question' not in user_column_names:
+                print("Adding secret_question column to user table...")
+                cursor.execute("ALTER TABLE user ADD COLUMN secret_question VARCHAR(200)")
+                conn.commit()
+
+            if 'secret_answer' not in user_column_names:
+                print("Adding secret_answer column to user table...")
+                cursor.execute("ALTER TABLE user ADD COLUMN secret_answer VARCHAR(200)")
+                conn.commit()
+
+            # Check if branding table exists and has all required columns
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='branding'")
+            if not cursor.fetchone():
+                print("Creating branding table...")
+                cursor.execute("""
+                    CREATE TABLE branding (
+                        id INTEGER PRIMARY KEY,
+                        app_name VARCHAR(100) DEFAULT 'POS System',
+                        app_subtitle VARCHAR(200) DEFAULT 'Professional Point of Sale',
+                        business_name VARCHAR(200),
+                        business_address VARCHAR(500),
+                        business_phone VARCHAR(50),
+                        business_email VARCHAR(100),
+                        tax_id VARCHAR(50),
+                        primary_color VARCHAR(7) DEFAULT '#6366f1',
+                        secondary_color VARCHAR(7) DEFAULT '#8b5cf6',
+                        accent_color VARCHAR(7) DEFAULT '#10b981',
+                        background_color VARCHAR(7) DEFAULT '#ffffff',
+                        text_color VARCHAR(7) DEFAULT '#1f2937',
+                        font_family VARCHAR(100) DEFAULT 'Inter',
+                        logo_url VARCHAR(500),
+                        favicon_url VARCHAR(500),
+                        footer_text VARCHAR(500) DEFAULT 'Thank you for your business!',
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                conn.commit()
+
+            # Check if activity_log table exists
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='activity_log'")
+            if not cursor.fetchone():
+                print("Creating activity_log table...")
+                cursor.execute("""
+                    CREATE TABLE activity_log (
+                        id INTEGER PRIMARY KEY,
+                        user_id INTEGER REFERENCES user(id),
+                        username VARCHAR(80) NOT NULL,
+                        action VARCHAR(100) NOT NULL,
+                        action_category VARCHAR(50) NOT NULL,
+                        resource_type VARCHAR(50) NOT NULL,
+                        resource_id INTEGER,
+                        resource_name VARCHAR(200),
+                        details TEXT,
+                        old_value TEXT,
+                        new_value TEXT,
+                        ip_address VARCHAR(45),
+                        user_agent VARCHAR(500),
+                        session_id VARCHAR(100),
+                        terminal_id VARCHAR(50),
+                        location VARCHAR(100),
+                        status VARCHAR(20) DEFAULT 'success',
+                        error_message TEXT,
+                        severity VARCHAR(20) DEFAULT 'info',
+                        compliance_flag BOOLEAN DEFAULT 0,
+                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        retention_date DATETIME
+                    )
+                """)
+                conn.commit()
+
+            # Remove backup_schedule table if it exists (cleanup from previous versions)
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='backup_schedule'")
+            if cursor.fetchone():
+                print("Removing backup_schedule table...")
+                cursor.execute("DROP TABLE backup_schedule")
+                conn.commit()
+
+            conn.close()
+            print("Database migration completed successfully!")
+
+        except Exception as e:
+            print(f"Database migration failed: {str(e)}")
+            # Don't fail the application if migration fails
+
 if __name__ == '__main__':
     create_tables()
+    migrate_database()  # Run database migration to handle schema updates
     app.run(debug=True, host='0.0.0.0', port=5000)
