@@ -1990,54 +1990,7 @@ def developer_guide():
 
     return render_template('developer_guide.html')
 
-@app.route('/security_monitor')
-@login_required
-def security_monitor():
-    # Only admins can access security monitoring
-    if not has_permission(current_user, 'system_admin'):
-        flash('Access denied. Only system administrators can view security monitoring.', 'error')
-        return redirect(url_for('dashboard'))
 
-    # Get recent login attempts (last 24 hours)
-    cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
-    recent_attempts = LoginAttempt.query.filter(
-        LoginAttempt.attempt_time >= cutoff_time
-    ).order_by(LoginAttempt.attempt_time.desc()).limit(100).all()
-
-    # Get blocked IPs
-    blocked_ips = BlockedIP.query.filter(
-        BlockedIP.blocked_until > datetime.now(timezone.utc)
-    ).order_by(BlockedIP.blocked_until.desc()).all()
-
-    # Get security statistics
-    stats_24h = get_security_stats(hours=24)
-    stats_7d = get_security_stats(hours=168)  # 7 days
-
-    # Get failed login attempts by IP (top 10)
-    failed_by_ip = db.session.query(
-        LoginAttempt.ip_address,
-        db.func.count(LoginAttempt.id).label('count')
-    ).filter(
-        LoginAttempt.success == False,
-        LoginAttempt.attempt_time >= cutoff_time
-    ).group_by(LoginAttempt.ip_address).order_by(db.desc('count')).limit(10).all()
-
-    # Get failed login attempts by username (top 10)
-    failed_by_user = db.session.query(
-        LoginAttempt.username,
-        db.func.count(LoginAttempt.id).label('count')
-    ).filter(
-        LoginAttempt.success == False,
-        LoginAttempt.attempt_time >= cutoff_time
-    ).group_by(LoginAttempt.username).order_by(db.desc('count')).limit(10).all()
-
-    return render_template('security_monitor.html',
-                         recent_attempts=recent_attempts,
-                         blocked_ips=blocked_ips,
-                         stats_24h=stats_24h,
-                         stats_7d=stats_7d,
-                         failed_by_ip=failed_by_ip,
-                         failed_by_user=failed_by_user)
 
 @app.route('/api/unblock_ip/<ip_address>', methods=['POST'])
 @login_required
@@ -2529,7 +2482,9 @@ def activity_logs():
                              'severity': severity_filter,
                              'from_date': from_date,
                              'to_date': to_date
-                         })
+                         },
+                         max=max,
+                         min=min)
 
 @app.route('/export_activity_logs/<format>')
 @login_required
@@ -2773,64 +2728,73 @@ def branding():
                     branding_settings = Branding()
                     db.session.add(branding_settings)
 
-            # Update all branding settings - handle empty fields with placeholder defaults
-            branding_settings.app_name = request.form.get('app_name', '').strip() or 'POS System'
-            branding_settings.app_subtitle = request.form.get('app_subtitle', '').strip() or 'Professional Point of Sale'
+            # Update all branding settings - ALL FIELDS ARE OPTIONAL with sensible defaults
 
-            # Handle nullable fields with placeholder defaults
-            business_name = request.form.get('business_name', '').strip()
-            branding_settings.business_name = business_name if business_name else None
+            # App Branding (required with defaults)
+            app_name = request.form.get('app_name', '').strip()
+            branding_settings.app_name = app_name if app_name else 'POS System'
 
-            business_address = request.form.get('business_address', '').strip()
-            branding_settings.business_address = business_address if business_address else None
+            app_subtitle = request.form.get('app_subtitle', '').strip()
+            branding_settings.app_subtitle = app_subtitle if app_subtitle else 'Professional Point of Sale'
 
-            business_phone = request.form.get('business_phone', '').strip()
-            branding_settings.business_phone = business_phone if business_phone else None
+            # Business Information (all optional - can be empty/null)
+            branding_settings.business_name = request.form.get('business_name', '').strip() or None
+            branding_settings.business_address = request.form.get('business_address', '').strip() or None
+            branding_settings.business_phone = request.form.get('business_phone', '').strip() or None
+            branding_settings.business_email = request.form.get('business_email', '').strip() or None
+            branding_settings.tax_id = request.form.get('tax_id', '').strip() or None
 
-            business_email = request.form.get('business_email', '').strip()
-            branding_settings.business_email = business_email if business_email and business_email != 'info@yourbusiness.com' else None
-
-            tax_id = request.form.get('tax_id', '').strip()
-            branding_settings.tax_id = tax_id if tax_id else None
-
-            # Handle color fields with defaults
+            # Theme Colors (required with defaults)
             branding_settings.primary_color = request.form.get('primary_color', '').strip() or '#6366f1'
             branding_settings.secondary_color = request.form.get('secondary_color', '').strip() or '#8b5cf6'
             branding_settings.accent_color = request.form.get('accent_color', '').strip() or '#10b981'
             branding_settings.background_color = request.form.get('background_color', '').strip() or '#ffffff'
             branding_settings.text_color = request.form.get('text_color', '').strip() or '#1f2937'
+
+            # Typography (required with default)
             branding_settings.font_family = request.form.get('font_family', '').strip() or 'Inter'
 
-            # Handle URL fields with placeholder defaults
+            # Assets (optional - can be empty/null)
             logo_url = request.form.get('logo_url', '').strip()
             branding_settings.logo_url = logo_url if logo_url and logo_url != 'https://example.com/logo.png' else None
 
             favicon_url = request.form.get('favicon_url', '').strip()
             branding_settings.favicon_url = favicon_url if favicon_url and favicon_url != 'https://example.com/favicon.ico' else None
 
+            # Footer Text (optional with default)
             footer_text = request.form.get('footer_text', '').strip()
             branding_settings.footer_text = footer_text if footer_text else 'Thank you for your business!'
-            branding_settings.receipt_return_policy = request.form.get('receipt_return_policy', branding_settings.receipt_return_policy)
 
-            # Receipt customization fields
-            branding_settings.receipt_header_title = request.form.get('receipt_header_title', branding_settings.receipt_header_title)
-            branding_settings.receipt_number_label = request.form.get('receipt_number_label', branding_settings.receipt_number_label)
-            branding_settings.date_label = request.form.get('date_label', branding_settings.date_label)
-            branding_settings.cashier_label = request.form.get('cashier_label', branding_settings.cashier_label)
-            branding_settings.payment_method_label = request.form.get('payment_method_label', branding_settings.payment_method_label)
-            branding_settings.payment_method_value = request.form.get('payment_method_value', branding_settings.payment_method_value)
-            branding_settings.cash_received_label = request.form.get('cash_received_label', branding_settings.cash_received_label)
-            branding_settings.change_label = request.form.get('change_label', branding_settings.change_label)
-            branding_settings.currency_symbol = request.form.get('currency_symbol', branding_settings.currency_symbol)
-            branding_settings.item_header = request.form.get('item_header', branding_settings.item_header)
-            branding_settings.quantity_header = request.form.get('quantity_header', branding_settings.quantity_header)
-            branding_settings.amount_header = request.form.get('amount_header', branding_settings.amount_header)
-            branding_settings.subtotal_label = request.form.get('subtotal_label', branding_settings.subtotal_label)
-            branding_settings.discount_label = request.form.get('discount_label', branding_settings.discount_label)
-            branding_settings.total_label = request.form.get('total_label', branding_settings.total_label)
-            branding_settings.records_message = request.form.get('records_message', branding_settings.records_message)
-            branding_settings.powered_by_label = request.form.get('powered_by_label', branding_settings.powered_by_label)
-            branding_settings.version_text = request.form.get('version_text', branding_settings.version_text)
+            # Receipt Settings (all optional with defaults)
+            receipt_return_policy = request.form.get('receipt_return_policy', '').strip()
+            branding_settings.receipt_return_policy = receipt_return_policy if receipt_return_policy else 'For exchanges/returns, present this receipt within 30 days.'
+
+            records_message = request.form.get('records_message', '').strip()
+            branding_settings.records_message = records_message if records_message else 'Please keep this receipt for your records.'
+
+            # Receipt Labels (all optional with defaults)
+            branding_settings.receipt_number_label = request.form.get('receipt_number_label', '').strip() or 'Receipt #:'
+            branding_settings.date_label = request.form.get('date_label', '').strip() or 'Date:'
+            branding_settings.cashier_label = request.form.get('cashier_label', '').strip() or 'Cashier:'
+            branding_settings.payment_method_label = request.form.get('payment_method_label', '').strip() or 'Payment Method:'
+            branding_settings.payment_method_value = request.form.get('payment_method_value', '').strip() or 'Cash'
+            branding_settings.cash_received_label = request.form.get('cash_received_label', '').strip() or 'Cash Received:'
+            branding_settings.change_label = request.form.get('change_label', '').strip() or 'Change:'
+            branding_settings.currency_symbol = request.form.get('currency_symbol', '').strip() or 'AFA'
+
+            # Receipt Table Headers (all optional with defaults)
+            branding_settings.item_header = request.form.get('item_header', '').strip() or 'Item'
+            branding_settings.quantity_header = request.form.get('quantity_header', '').strip() or 'Qty'
+            branding_settings.amount_header = request.form.get('amount_header', '').strip() or 'Amount'
+
+            # Receipt Totals (all optional with defaults)
+            branding_settings.subtotal_label = request.form.get('subtotal_label', '').strip() or 'Subtotal:'
+            branding_settings.discount_label = request.form.get('discount_label', '').strip() or 'Discount'
+            branding_settings.total_label = request.form.get('total_label', '').strip() or 'TOTAL:'
+
+            # Receipt Footer Branding (all optional with defaults)
+            branding_settings.powered_by_label = request.form.get('powered_by_label', '').strip() or 'Powered by'
+            branding_settings.version_text = request.form.get('version_text', '').strip() or 'v1.0'
 
             db.session.commit()
 
@@ -2838,7 +2802,7 @@ def branding():
             if hasattr(branding_settings, 'id') and branding_settings.id:
                 log_activity(user=current_user, action='branding_update', resource_type='branding',
                             resource_id=branding_settings.id, resource_name='Branding Settings',
-                            details=f'Updated branding settings: app_name={branding_settings.app_name}, business_name={branding_settings.business_name}')
+                            details=f'Updated branding settings: app_name={branding_settings.app_name}')
 
             flash('Branding settings updated successfully!', 'success')
             return redirect(url_for('branding'))

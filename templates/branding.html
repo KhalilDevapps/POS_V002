@@ -20,13 +20,13 @@
                         <div class="form-group">
                             <label for="app_name" class="form-label">App Name</label>
                             <input type="text" id="app_name" name="app_name" class="form-input"
-                                   value="{{ branding.app_name }}" placeholder="POS System">
+                                   value="{{ branding.app_name }}" placeholder="POS System" maxlength="100">
                         </div>
 
                         <div class="form-group">
                             <label for="app_subtitle" class="form-label">App Subtitle</label>
                             <input type="text" id="app_subtitle" name="app_subtitle" class="form-input"
-                                   value="{{ branding.app_subtitle }}" placeholder="Professional Point of Sale">
+                                   value="{{ branding.app_subtitle }}" placeholder="Professional Point of Sale" maxlength="200">
                         </div>
                     </div>
                 </div>
@@ -55,7 +55,7 @@
 
                         <div class="form-group">
                             <label for="business_email" class="form-label">Business Email</label>
-                            <input type="email" id="business_email" name="business_email" class="form-input"
+                            <input type="text" id="business_email" name="business_email" class="form-input"
                                    value="{{ branding.business_email }}" placeholder="info@yourbusiness.com">
                         </div>
 
@@ -145,13 +145,13 @@
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="logo_url" class="form-label">Logo URL</label>
-                            <input type="url" id="logo_url" name="logo_url" class="form-input"
+                            <input type="text" id="logo_url" name="logo_url" class="form-input"
                                    value="{{ branding.logo_url }}" placeholder="https://example.com/logo.png">
                         </div>
 
                         <div class="form-group">
                             <label for="favicon_url" class="form-label">Favicon URL</label>
-                            <input type="url" id="favicon_url" name="favicon_url" class="form-input"
+                            <input type="text" id="favicon_url" name="favicon_url" class="form-input"
                                    value="{{ branding.favicon_url }}" placeholder="https://example.com/favicon.ico">
                         </div>
                     </div>
@@ -225,7 +225,7 @@
                         <div class="form-group">
                             <label for="payment_method_value" class="form-label">Payment Method Value</label>
                             <input type="text" id="payment_method_value" name="payment_method_value" class="form-input"
-                                   value="{{ branding.payment_method_value }}" placeholder="Cash">
+                                   value="{{ branding.payment_method_value }}" placeholder="AFA">
                         </div>
 
                         <div class="form-group">
@@ -421,6 +421,19 @@
 .form-textarea:focus,
 .form-select:focus {
     outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Override browser validation styles */
+.form-input:invalid,
+.form-input:-moz-ui-invalid {
+    box-shadow: none;
+    border-color: #e5e7eb;
+}
+
+.form-input:invalid:focus,
+.form-input:-moz-ui-invalid:focus {
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
@@ -631,7 +644,7 @@ function resetToDefaults() {
         document.getElementById('date_label').value = 'Date:';
         document.getElementById('cashier_label').value = 'Cashier:';
         document.getElementById('payment_method_label').value = 'Payment Method:';
-        document.getElementById('payment_method_value').value = 'Cash';
+        document.getElementById('payment_method_value').value = 'AFA';
         document.getElementById('cash_received_label').value = 'Cash Received:';
         document.getElementById('change_label').value = 'Change:';
         document.getElementById('currency_symbol').value = 'AFA';
